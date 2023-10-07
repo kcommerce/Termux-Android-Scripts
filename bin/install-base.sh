@@ -31,6 +31,7 @@ echo "--> Install boot services"
 echo "#!/data/data/com.termux/files/usr/bin/bash" > $BOOT_FILE
 echo "termux-wake-lock" >> $BOOT_FILE
 echo "source /data/data/com.termux/files/usr/etc/profile.d/start-services.sh " >> $BOOT_FILE
+chmod +x $BOOT_FILE
 echo "--> Check boot file:"
 ls -al $BOOT_FILE
 cat $BOOT_FILE
