@@ -38,6 +38,6 @@ cat $BOOT_FILE
 
 echo "** Install addtionals: "
 pkg install vim screen mpg123 sox espeak ytui-music  -y
-pkg install git wget curl -y
+pkg install git -y
 echo "Test espeak :"
 espeak "Hello, World"
