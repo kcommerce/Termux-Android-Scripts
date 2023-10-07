@@ -37,7 +37,7 @@ ls -al $BOOT_FILE
 cat $BOOT_FILE
 
 echo "** Install addtionals: "
-pkg install vim screen mpg123 sox espeak ytui-music  -y
+pkg install vim screen mpg123 sox espeak cmus  -y
 pkg install git -y
 echo "Test espeak :"
 espeak "Hello, World"
