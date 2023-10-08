@@ -8,7 +8,7 @@ echo " Install based services for Termux "
 echo "----------------------------------"
 
 echo "*** Install Python "
-pkg install python,python-pip -y
+pkg install python python-pip -y
 
 echo "*** Install Termux packages "
 pkg install termux-services termux-tools termux-api -y
