@@ -6,9 +6,10 @@ This guide will walk you through the steps to install Termux and required script
 ## Installation Steps
 
 ### 1. Install Termux and Termux:Boot
-
+- You can download copies of apks here: [download link](https://github.com/kcommerce/Termux-Android-Scripts/tree/main/apk)
+- Alternatively, you can download the latest version of Termux at [F-droid link](https://f-droid.org/en/)
 - **Option 1: Using adb tools**
-  - Ensure you have adb tools installed on your computer.
+  - Ensure you have adb tools installed on your computer. You can find adb tools for macOS here: [download link](https://github.com/kcommerce/Termux-Android-Scripts/tree/main/adb-tools)
   - Connect your Android device to your computer via USB.
   - Run the following command to install Termux and Termux:Boot APKs:
     ```bash
@@ -18,7 +19,7 @@ This guide will walk you through the steps to install Termux and required script
 
 - **Option 2: Manual APK Download**
   - Download the APK files for Termux and Termux:Boot manually to your phone.
-  - Install the APKs on your Android device.
+  - Install the APKs on your Android device manually.
 
 ### 2. Set Autostart for Termux:Boot
 
@@ -29,7 +30,11 @@ This guide will walk you through the steps to install Termux and required script
 
 - Navigate to your device settings.
 - Find the battery settings and set the permission for Termux to "No restrictions."
-
+- Example Termux settings on Redmi 7A
+- 
+  <img src="images/Screenshot_2023-10-07-18-21-27-785_com.miui.powerkeeper.jpg" alt="Termux Battery Setting" width="30%" height="30%">
+- For Termux:Boot , same like Termux
+ 
 ### 4. Launch Termux Application
 
 - Locate and open the Termux application on your Android device.
@@ -40,7 +45,9 @@ This guide will walk you through the steps to install Termux and required script
   ```bash
   termux-setup-storage
   ```
-
+- Example Termux terminal on Redmi 7A
+-
+  <img src="images/Screenshot_2023-10-07-18-26-04-376_com.termux.jpg" alt="Termux Battery Setting" width="30%" height="30%">
 ### 6. Update and Upgrade Packages
 - Run the following commands to update and upgrade Termux packages:
   ```bash
