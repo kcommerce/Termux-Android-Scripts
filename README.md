@@ -46,6 +46,10 @@ You can check [Termux - the official web site here ](https://termux.dev/en/)
   pkg install root-repo
   termux-setup-storage
   ```
+- (Optional): Change repository to nearest location; The default is in the US.
+  ```bash
+  termux-change-repo
+  ```
 - Example Termux terminal on Redmi 7A
 -
   <img src="images/Screenshot_2023-10-07-18-26-04-376_com.termux.jpg" alt="Termux Battery Setting" width="30%" height="30%">
