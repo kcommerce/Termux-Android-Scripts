@@ -77,3 +77,8 @@ The installation process will begin, and you'll be guided through the setup of t
   ```bash
   pstree
   ```
+### 9. Change Password
+- Run the passwd command to change the password:
+  ```bash
+  passwd
+  ```
