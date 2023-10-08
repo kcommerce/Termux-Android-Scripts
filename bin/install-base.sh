@@ -15,7 +15,7 @@ pkg install termux-services termux-tools termux-api -y
 
 echo "*** Install Web(8080), SFTP(8021), SSH(8022) "
 pkg install apache2 openssh-sftp-server -y
-pkg install openssh neofetch fish nmap cronie -y
+pkg install openssh neofetch fish nmap cronie busybox -y
 echo "** Install addtionals: "
 pkg install vim screen mpg123 sox espeak cmus  -y
 pkg install git -y
