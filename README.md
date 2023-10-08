@@ -43,6 +43,7 @@ You can check [Termux - the official web site here ](https://termux.dev/en/)
 
 - Run the following commands in the Termux terminal to configure it:
   ```bash
+  pkg install root-repo
   termux-setup-storage
   ```
 - Example Termux terminal on Redmi 7A
