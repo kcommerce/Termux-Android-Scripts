@@ -41,10 +41,10 @@ You can check [Termux - the official web site here ](https://termux.dev/en/)
 
 ### 5. Configure Termux
 
-- Run the following commands in the Termux terminal to install root-repo and configure the storage:
+- Run the following commands in the Termux terminal to configure the storage and install root-repo:
   ```bash
-  pkg install root-repo
   termux-setup-storage
+  pkg install root-repo
   ```
 - (Optional): Change repository to nearest location; The default is in the US.
   ```bash
@@ -59,12 +59,8 @@ You can check [Termux - the official web site here ](https://termux.dev/en/)
   pkg update -y
   pkg upgrade -y
   ```
-### 7. Install Curl
-- Run the following command to install curl:
-  ```bash
-  pkg install curl -y
-  ```
-### 8. Download and Run Installation Script
+
+### 7. Download and Run Installation Script
 - Run the following commands to download and run the installation script:
   ```bash
   curl -o install.sh https://raw.githubusercontent.com/kcommerce/Termux-Android-Scripts/main/bin/install-base.sh
