@@ -66,4 +66,14 @@ You can check [Termux - the official web site here ](https://termux.dev/en/)
   curl -o install.sh https://raw.githubusercontent.com/kcommerce/Termux-Android-Scripts/main/bin/install-base.sh
   chmod +x install.sh
   ./install.sh
+  ```
 The installation process will begin, and you'll be guided through the setup of the base Termux scripts. If the script prompts for Yes/No, just enter "Y" to accept it.
+### 8. Verify Services
+- Run the following commands to verify running ports: ftpd(8021), sshd(8022), httpd(8080):
+  ```bash
+  nmap localhost
+  ```
+- Run the following command to check process tree:
+  ```bash
+  pstree
+  ```
