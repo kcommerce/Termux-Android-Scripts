@@ -2,7 +2,7 @@
 # Termux Android Scripts : Installation
 
 This guide will walk you through the steps to install Termux and required scripts on your Android device using either adb tools or manual APK download.
-
+You can check [Termux - the official web site here ](https://termux.dev/en/)
 ## Installation Steps
 
 ### 1. Install Termux and Termux:Boot
