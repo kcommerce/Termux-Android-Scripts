@@ -41,7 +41,7 @@ You can check [Termux - the official web site here ](https://termux.dev/en/)
 
 ### 5. Configure Termux
 
-- Run the following commands in the Termux terminal to configure it:
+- Run the following commands in the Termux terminal to install root-repo and configure the storage:
   ```bash
   pkg install root-repo
   termux-setup-storage
@@ -66,4 +66,4 @@ You can check [Termux - the official web site here ](https://termux.dev/en/)
   curl -o install.sh https://raw.githubusercontent.com/kcommerce/Termux-Android-Scripts/main/bin/install-base.sh
   chmod +x install.sh
   ./install.sh
-The installation process will begin, and you'll be guided through the setup of the base Termux scripts.
+The installation process will begin, and you'll be guided through the setup of the base Termux scripts. If the script prompts for Yes/No, just enter "Y" to accept it.
