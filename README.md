@@ -1,4 +1,8 @@
-
+# Prerequisites
+- Android Phones with version 8.0 or 8.1
+- I tested with with the following version
+- Redmi 5A (Android verion 8.0) : Termux App - OK , Termux Boot - auto start : OK
+- Redmi 7A (Android version 8.1) : Termux App - OK, Termux Boot - installation OK ; but cannot configure auto start 
 # Termux Android Scripts : Installation
 
 This guide will walk you through the steps to install Termux and required scripts on your Android device using either adb tools or manual APK download.
