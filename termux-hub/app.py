@@ -104,13 +104,38 @@ def log_system_event(tag: str, cmd_str: str, returncode: int = 0, stdout: str = 
     if len(system_logs) > 100:
         system_logs.pop(0)
 
+# Default per-command timeouts (in seconds) to prevent 12s process hangs
+DEFAULT_TIMEOUTS = {
+    "termux-volume": 3,
+    "termux-media-player": 3,
+    "termux-battery-status": 3,
+    "termux-vibrate": 3,
+    "termux-torch": 3,
+    "termux-telephony-call": 4,
+    "termux-sms-send": 5,
+    "termux-camera-info": 4,
+    "termux-camera-photo": 10,
+    "termux-location": 6,
+    "termux-tts-speak": 6,
+    "getprop": 2,
+    "ip": 3,
+    "termux-wifi-connectioninfo": 4,
+}
+
 # ==============================================================================
 # Helper Function for Executing Termux Commands
 # ==============================================================================
-def run_termux_cmd(cmd: list, timeout: int = 12) -> Dict[str, Any]:
-    """Execute a termux-api CLI command synchronously with error handling and log recording."""
+def run_termux_cmd(cmd: list, timeout: Optional[int] = None) -> Dict[str, Any]:
+    """Execute a termux-api CLI command with smart per-command timeout and error logging."""
+    if not cmd:
+        return {"success": False, "error": "Empty command"}
+
+    cmd_binary = os.path.basename(cmd[0])
+    if timeout is None:
+        timeout = DEFAULT_TIMEOUTS.get(cmd_binary, 4)
+
     cmd_str = " ".join(cmd)
-    logger.info(f"Executing command: {cmd_str}")
+    logger.info(f"Executing command: {cmd_str} (timeout: {timeout}s)")
     try:
         proc = subprocess.run(
             cmd,
@@ -506,9 +531,28 @@ def speak_tts():
     res = speak_text_sync(clean_msg, rate=rate)
     return jsonify(res)
 
+def play_clock_chime_async(mp3_path: Optional[str], volume: str, hour: int, rate: float = 1.0):
+    """Executes volume adjustment and audio chime playback in a background thread."""
+    def _worker():
+        try:
+            filename = f"{hour:02d}-00.mp3"
+            run_termux_cmd(["termux-volume", "music", str(volume)], timeout=3)
+            if mp3_path and os.path.exists(mp3_path):
+                run_termux_cmd(["termux-media-player", "stop"], timeout=2)
+                run_termux_cmd(["termux-media-player", "play", mp3_path], timeout=3)
+                log_system_event("TALKING-CLOCK", f"Playing hourly chime MP3: {filename}")
+            else:
+                fallback_msg = f"ขณะนี้เวลา {hour} นาฬิกา"
+                speak_text_sync(fallback_msg, rate=str(rate))
+                log_system_event("TALKING-CLOCK", f"Hourly chime MP3 missing for hour {hour:02d}, used TTS fallback")
+        except Exception as e:
+            logger.error(f"Error in async chime playback: {e}")
+
+    threading.Thread(target=_worker, daemon=True).start()
+
 @app.route("/api/clock/test", methods=["POST"])
 def test_clock_chime():
-    """Plays the fixed hourly chime MP3 (HH-MM.mp3) for current or requested hour."""
+    """Triggers the fixed hourly chime MP3 (HH-MM.mp3) for current or requested hour in background."""
     data = request.get_json(force=True, silent=True) or {}
     hour = data.get("hour")
     if hour is None:
@@ -523,17 +567,8 @@ def test_clock_chime():
     mp3_path = get_talking_clock_mp3_path(hour)
     filename = f"{hour:02d}-00.mp3"
 
-    run_termux_cmd(["termux-volume", "music", volume])
-    if mp3_path and os.path.exists(mp3_path):
-        run_termux_cmd(["termux-media-player", "stop"], timeout=2)
-        res = run_termux_cmd(["termux-media-player", "play", mp3_path])
-        log_system_event("TALKING-CLOCK", f"Tested hourly chime MP3: {filename}")
-        return jsonify({"success": True, "file": filename, "path": mp3_path, "result": res})
-    else:
-        fallback_msg = f"ขณะนี้เวลา {hour} นาฬิกา"
-        res = speak_text_sync(fallback_msg)
-        log_system_event("TALKING-CLOCK", f"Hourly chime MP3 missing for hour {hour:02d}, used TTS fallback")
-        return jsonify({"success": True, "file": filename, "fallback_tts": True, "result": res})
+    play_clock_chime_async(mp3_path, volume, hour)
+    return jsonify({"success": True, "file": filename, "status": "playing_async"})
 
 @app.route("/api/clock/settings", methods=["POST"])
 def update_clock_settings():
@@ -1058,17 +1093,8 @@ def hourly_clock_daemon():
                     last_spoken_hour = now.hour
                     filename = f"{now.hour:02d}-00.mp3"
                     mp3_path = get_talking_clock_mp3_path(now.hour)
-
                     logger.info(f"Hourly chime triggering at {now.hour}:00 - MP3: '{filename}'")
-                    run_termux_cmd(["termux-volume", "music", volume])
-                    if mp3_path and os.path.exists(mp3_path):
-                        run_termux_cmd(["termux-media-player", "stop"], timeout=2)
-                        run_termux_cmd(["termux-media-player", "play", mp3_path])
-                        log_system_event("TALKING-CLOCK", f"Triggered hourly chime MP3: {filename}")
-                    else:
-                        msg = f"ขณะนี้เวลา {now.hour} นาฬิกา"
-                        speak_text_sync(msg, rate=rate)
-                        log_system_event("TALKING-CLOCK", f"Hourly chime MP3 missing for hour {now.hour:02d}, used TTS fallback")
+                    play_clock_chime_async(mp3_path, str(volume), now.hour, rate=rate)
 
             # 3. Check Battery Low Level Alert (70%, 50%, 30%, 20%, 10%, 5%)
             check_battery_low_alert()
