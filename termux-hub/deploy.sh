@@ -64,6 +64,7 @@ info "Transferring application files..."
 ${SCP_BASE} "${SCRIPT_DIR}/app.py" \
            "${SCRIPT_DIR}/senior_caregiver_termux_hub.html" \
            "${SCRIPT_DIR}/requirements.txt" \
+           "${SCRIPT_DIR}/edge-tts-speak" \
            "${SCRIPT_DIR}/manage-service.sh" \
            "${SCRIPT_DIR}/check-prerequisites.sh" \
            "${SCRIPT_DIR}/README.md" \
@@ -88,8 +89,16 @@ ${SSH_BASE} bash -c "'
     ./venv/bin/pip install --upgrade pip
     ./venv/bin/pip install -r requirements.txt
 
-    echo \"---> Setting executable permissions...\"
-    chmod +x manage-service.sh check-prerequisites.sh
+    echo \"---> Setting executable permissions & installing edge-tts-speak CLI...\"
+    chmod +x manage-service.sh check-prerequisites.sh edge-tts-speak
+    mkdir -p \$HOME/bin
+    cp -f edge-tts-speak \$HOME/bin/edge-tts-speak
+    chmod +x \$HOME/bin/edge-tts-speak
+    if [ -d \"/data/data/com.termux/files/usr/bin\" ]; then
+        sed -i \"1s|.*|#!\$HOME/eldercare-hub/venv/bin/python3|\" \$HOME/bin/edge-tts-speak
+        cp -f \$HOME/bin/edge-tts-speak /data/data/com.termux/files/usr/bin/edge-tts-speak 2>/dev/null || true
+        chmod +x /data/data/com.termux/files/usr/bin/edge-tts-speak 2>/dev/null || true
+    fi
 
     echo \"---> Configuring Termux:Boot autostart script...\"
     BOOT_SCRIPT=\"\$HOME/.termux/boot/start-eldercare-hub\"

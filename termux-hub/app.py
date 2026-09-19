@@ -462,19 +462,55 @@ def get_tts_engines():
 
     return jsonify({"success": True, "engines": engines, "default_engine": GOOGLE_TTS_ENGINE, "language": DEFAULT_TTS_LANG})
 
+def speak_text_sync(text: str, rate: str = "1.0", voice: str = "th-TH-PremwadeeNeural") -> Dict[str, Any]:
+    """
+    Synthesizes and speaks text using Microsoft Edge Neural TTS + termux-media-player.
+    Falls back to termux-tts-speak if edge-tts or network is unavailable.
+    """
+    clean_msg = text.strip('"').strip("'")
+    if not clean_msg:
+        return {"success": False, "error": "Empty message"}
+
+    rate_str = "+0%"
+    try:
+        r_float = float(rate)
+        pct = int(round((r_float - 1.0) * 100))
+        rate_str = f"{'+' if pct >= 0 else ''}{pct}%"
+    except (ValueError, TypeError):
+        pass
+
+    cache_file = os.path.join(SOUNDS_DIR, "tts_cache.mp3")
+
+    try:
+        import asyncio
+        import edge_tts
+        async def _synth():
+            communicate = edge_tts.Communicate(clean_msg, voice, rate=rate_str)
+            await communicate.save(cache_file)
+
+        asyncio.run(_synth())
+        if os.path.exists(cache_file) and os.path.getsize(cache_file) > 0:
+            run_termux_cmd(["termux-media-player", "stop"], timeout=2)
+            play_res = run_termux_cmd(["termux-media-player", "play", cache_file], timeout=15)
+            log_system_event("EDGE-TTS", f"Spoke via Edge Neural TTS ({voice}): '{clean_msg}'")
+            return {"success": True, "engine": "edge-tts", "voice": voice, "file": cache_file, "result": play_res}
+    except Exception as e:
+        logger.warning(f"Edge TTS synthesis failed ({e}), falling back to termux-tts-speak")
+
+    fallback_cmd = ["termux-tts-speak", "-e", GOOGLE_TTS_ENGINE, "-l", DEFAULT_TTS_LANG, "-r", str(rate), f'"{clean_msg}"']
+    return run_termux_cmd(fallback_cmd)
+
 @app.route("/api/tts", methods=["POST"])
 def speak_tts():
-    """Sets volume and speaks text aloud using Google TTS engine with '-l th'."""
+    """Sets volume and speaks text aloud using Edge Neural TTS (fallback to Google TTS)."""
     data = request.get_json(force=True, silent=True) or {}
     message = data.get("message", "ทดสอบการพูดด้วยเสียง")
     rate = str(data.get("rate", 1.0))
-    pitch = str(data.get("pitch", 1.0))
     volume = str(data.get("volume", 12))
 
     run_termux_cmd(["termux-volume", "music", volume])
     clean_msg = message.strip('"')
-    cmd = ["termux-tts-speak", "-e", GOOGLE_TTS_ENGINE, "-l", DEFAULT_TTS_LANG, "-p", pitch, "-r", rate, f'"{clean_msg}"']
-    res = run_termux_cmd(cmd)
+    res = speak_text_sync(clean_msg, rate=rate)
     return jsonify(res)
 
 @app.route("/api/clock/settings", methods=["POST"])
@@ -565,7 +601,7 @@ def play_routine_now(routine_id):
 
     run_termux_cmd(["termux-volume", "music", volume])
     clean_msg = msg.strip('"')
-    res = run_termux_cmd(["termux-tts-speak", "-e", GOOGLE_TTS_ENGINE, "-l", DEFAULT_TTS_LANG, "-r", rate, f'"{clean_msg}"'])
+    res = speak_text_sync(clean_msg, rate=rate)
 
     if mp3:
         mp3_path = os.path.join(SOUNDS_DIR, secure_filename(mp3))
@@ -596,8 +632,7 @@ def broadcast_intercom():
     run_termux_cmd(["termux-vibrate", "-d", "300", "-f"])
 
     clean_msg = message.strip('"')
-    cmd = ["termux-tts-speak", "-e", GOOGLE_TTS_ENGINE, "-l", DEFAULT_TTS_LANG, "-p", "1.0", "-r", rate, f'"ประกาศจากผู้ดูแล: {clean_msg}"']
-    res = run_termux_cmd(cmd)
+    res = speak_text_sync(f"ประกาศจากผู้ดูแล: {clean_msg}", rate=rate)
     return jsonify(res)
 
 @app.route("/api/intercom/live-stream", methods=["POST"])
@@ -647,7 +682,7 @@ def trigger_siren():
         clean_msg = speech_msg.strip('"')
         run_termux_cmd(["termux-volume", "music", "15"])
         run_termux_cmd(["termux-vibrate", "-d", "1000", "-f"])
-        run_termux_cmd(["termux-tts-speak", "-e", GOOGLE_TTS_ENGINE, "-l", DEFAULT_TTS_LANG, "-r", "1.2", f'"{clean_msg}"'])
+        speak_text_sync(clean_msg, rate="1.2")
     return jsonify({"status": "ok", "siren_active": active, "find_phone_message": hub_state.get("find_phone_message")})
 
 @app.route("/api/torch", methods=["POST"])
@@ -925,10 +960,8 @@ def check_battery_low_alert():
                     log_system_event("BATTERY-ALERT", f"Low battery at {pct}% (Threshold: {threshold}%) - Playing alert 3x: '{clean_msg}'")
 
                     run_termux_cmd(["termux-volume", "music", "15"])
-                    tts_cmd = ["termux-tts-speak", "-e", GOOGLE_TTS_ENGINE, "-l", DEFAULT_TTS_LANG, "-r", "0.9", f'"{clean_msg}"']
-
                     for i in range(3):
-                        run_termux_cmd(tts_cmd)
+                        speak_text_sync(clean_msg, rate="0.9")
                         time.sleep(3)
                     break
     except Exception as e:
@@ -944,8 +977,7 @@ def play_startup_announcement():
         log_system_event("STARTUP", f"Startup announcement: '{clean_msg}'")
 
         run_termux_cmd(["termux-volume", "music", "15"])
-        tts_cmd = ["termux-tts-speak", "-e", GOOGLE_TTS_ENGINE, "-l", DEFAULT_TTS_LANG, "-r", "0.9", f'"{clean_msg}"']
-        run_termux_cmd(tts_cmd)
+        speak_text_sync(clean_msg, rate="0.9")
     except Exception as e:
         logger.error(f"Error in startup announcement: {e}")
 
@@ -987,8 +1019,7 @@ def hourly_clock_daemon():
 
                             run_termux_cmd(["termux-volume", "music", volume])
                             clean_msg = msg.strip('"')
-                            cmd = ["termux-tts-speak", "-e", GOOGLE_TTS_ENGINE, "-l", DEFAULT_TTS_LANG, "-r", rate, f'"{clean_msg}"']
-                            run_termux_cmd(cmd)
+                            speak_text_sync(clean_msg, rate=rate)
 
                             if mp3:
                                 mp3_path = os.path.join(SOUNDS_DIR, secure_filename(mp3))
@@ -1009,8 +1040,7 @@ def hourly_clock_daemon():
                     logger.info(f"Hourly chime triggering at {now.hour}:00 - '{msg}'")
                     run_termux_cmd(["termux-volume", "music", volume])
                     clean_msg = msg.strip('"')
-                    cmd = ["termux-tts-speak", "-e", GOOGLE_TTS_ENGINE, "-l", DEFAULT_TTS_LANG, "-r", rate, f'"{clean_msg}"']
-                    run_termux_cmd(cmd)
+                    speak_text_sync(clean_msg, rate=rate)
 
             # 3. Check Battery Low Level Alert (70%, 50%, 30%, 20%, 10%, 5%)
             check_battery_low_alert()
