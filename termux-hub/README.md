@@ -85,8 +85,22 @@ Check system software, Termux:API connections, Python modules, SSL certs, and ne
 To guarantee the service starts automatically after an Android reboot:
 
 1. Ensure **Termux:Boot** app is installed on the phone.
-2. Ensure battery optimization for Termux & Termux:Boot is set to **No restrictions**.
+2. Ensure battery optimization for Termux, Termux:API & Termux:Boot is set to **Unrestricted / No restrictions**.
 3. Open **Termux:Boot** app once manually to register autostart permissions.
+
+---
+
+## 🔋 Android Battery Optimization & Doze Mode Troubleshooting
+
+Android aggressive background power management (Doze Mode) can suspend background broadcast intent receivers in `com.termux.api`. This stalls commands such as `termux-volume`, `termux-media-player`, `termux-battery-status`, or `termux-location`, leading to process timeouts.
+
+### Mandatory Android Device Configuration:
+1. **Set Unrestricted Battery Permissions for ALL 3 Apps:**
+   - **Termux:** `Settings` $\rightarrow$ `Apps` $\rightarrow$ `Termux` $\rightarrow$ `Battery` $\rightarrow$ **Unrestricted**
+   - **Termux:API:** `Settings` $\rightarrow$ `Apps` $\rightarrow$ `Termux:API` $\rightarrow$ `Battery` $\rightarrow$ **Unrestricted** (*Critical: Prevents hardware intent broadcast timeouts when screen is off*)
+   - **Termux:Boot:** `Settings` $\rightarrow$ `Apps` $\rightarrow$ `Termux:Boot` $\rightarrow$ `Battery` $\rightarrow$ **Unrestricted**
+2. **CPU Wake Lock Verification:**
+   - Verify `termux-wake-lock` is active on boot (handled automatically by `deploy.sh` and `manage-service.sh`).
 
 ---
 

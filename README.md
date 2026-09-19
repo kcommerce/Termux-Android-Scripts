@@ -30,14 +30,18 @@ You can check [Termux - the official web site here ](https://termux.dev/en/)
 - Open the Termux:Boot app on your device.
 - Set up the autostart functionality as per the app's instructions.
 
-### 3. Set Battery Permission to "No Restricted"
+### 3. Set Battery Permission to "Unrestricted / No Restrictions"
 
-- Navigate to your device settings.
-- Find the battery settings and set the permission for Termux to "No restrictions."
-- Example Termux settings on Redmi 7A
-- 
+> **IMPORTANT:** To prevent Android Doze Mode from freezing background IPC intents and causing CLI command timeouts during screen sleep, battery optimization MUST be set to **Unrestricted / No restrictions** for **ALL THREE applications**:
+> 1. **Termux** (`com.termux`)
+> 2. **Termux:API** (`com.termux.api`) — *Critical: Prevents hardware intent broadcast freezes when phone is sleeping*
+> 3. **Termux:Boot** (`com.termux.boot`)
+
+- Navigate to Android Device Settings $\rightarrow$ Apps.
+- Open each app (`Termux`, `Termux:API`, `Termux:Boot`), tap **Battery**, and select **Unrestricted** (or "No restrictions").
+- Example Termux battery settings on Redmi 7A:
+  
   <img src="images/Screenshot_2023-10-07-18-21-27-785_com.miui.powerkeeper.jpg" alt="Termux Battery Setting" width="30%" height="30%">
-- For Termux:Boot , same like Termux
  
 ### 4. Launch Termux Application
 
