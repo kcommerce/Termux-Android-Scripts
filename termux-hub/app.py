@@ -409,9 +409,9 @@ def get_system_status():
 
 @app.route("/api/phone-name", methods=["GET", "POST"])
 def manage_phone_name():
-    """Gets or updates and persists custom phone name."""
+    """Gets or updates and persists custom phone name to config file."""
     if request.method == "POST":
-        data = request.json or {}
+        data = request.get_json(force=True, silent=True) or {}
         name = data.get("phone_name", "").strip()
         if name:
             hub_state["phone_name"] = name

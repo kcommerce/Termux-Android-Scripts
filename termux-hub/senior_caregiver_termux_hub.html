@@ -272,46 +272,45 @@
 
   <!-- TOP HEADER -->
   <header class="sticky top-0 z-40 w-full glass-panel border-b border-slate-800/80 bg-slate-950/80">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-16 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
       <!-- Brand & Senior Persona -->
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-500 via-violet-600 to-cyan-400 p-0.5 shadow-lg shadow-rose-500/20 flex items-center justify-center">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-500 via-violet-600 to-cyan-400 p-0.5 shadow-lg shadow-rose-500/20 flex items-center justify-center shrink-0">
           <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
             <i class="fa-solid fa-heart-pulse text-rose-400 text-lg"></i>
           </div>
         </div>
         <div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
             <h1 class="font-display font-bold text-lg tracking-tight text-white flex items-center gap-2">
               <span class="text-rose-400 font-bold text-lg">Termux Hub</span>
             </h1>
             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-ping"></span>
-              <span id="phone-name-display" class="font-semibold">Grandma Evelyn</span>
+              <span id="phone-name-display" class="font-semibold"></span>
               <span id="phone-status-tag" class="ml-1 text-[11px] font-normal" data-i18n="phone_active_tag">(Active)</span>
               <button onclick="openPhoneNameModal()" class="ml-1.5 text-emerald-400 hover:text-emerald-200 transition" title="Edit Phone Name">
                 <i class="fa-solid fa-pen text-[10px]"></i>
               </button>
             </span>
           </div>
-          <p class="text-xs text-slate-400 hidden sm:block"><span id="device-model-display">Samsung S7 Edge</span> · Android Termux:API · Google TTS Enforced · Port 8888</p>
         </div>
       </div>
 
-      <!-- Header Right Controls: Battery & 2-Decimal Temp Pill, Network Pill, Find Phone, Lang -->
-      <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Header Right Controls: Battery & Temp Pill, Network Pill, Find Phone, Lang, Logout -->
+      <div class="flex items-center gap-1.5 sm:gap-2.5 flex-wrap max-w-full">
         <!-- Language Switcher (EN / TH) -->
         <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-1 shadow-inner">
-          <button id="lang-btn-en" onclick="setLanguage('en')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500 text-white shadow-sm flex items-center gap-1">
+          <button id="lang-btn-en" onclick="setLanguage('en')" class="px-2 py-1 rounded-lg text-xs font-semibold bg-rose-500 text-white shadow-sm flex items-center gap-1">
             <span>🇺🇸</span><span>EN</span>
           </button>
-          <button id="lang-btn-th" onclick="setLanguage('th')" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-1">
+          <button id="lang-btn-th" onclick="setLanguage('th')" class="px-2 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-1">
             <span>🇹🇭</span><span>TH</span>
           </button>
         </div>
 
         <!-- Battery Status & 2-Decimal Temperature Pill -->
-        <div id="battery-pill" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs">
+        <div id="battery-pill" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs">
           <i class="fa-solid fa-battery-full text-emerald-400" id="battery-icon"></i>
           <span id="battery-text" class="font-mono font-semibold text-white">100%</span>
           <span class="text-slate-600">|</span>
@@ -322,16 +321,16 @@
         </div>
 
         <!-- Network Connection Status Pill (WiFi / Cellular / Offline) -->
-        <div id="net-status-pill" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-slate-200 shadow-sm" title="Network Connection Status">
+        <div id="net-status-pill" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-slate-200 shadow-sm" title="Network Connection Status">
           <i id="net-icon" class="fa-solid fa-wifi text-emerald-400 text-xs"></i>
           <span id="net-text" class="font-mono font-semibold text-slate-200">WiFi</span>
         </div>
 
         <!-- Battery Query Polling Interval Selector -->
-        <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+        <div class="flex items-center gap-1 px-2 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs">
           <i class="fa-solid fa-clock-rotate-left text-slate-400" title="Battery Polling Interval"></i>
           <select id="battery-interval-select" onchange="updateBatteryPollInterval(this.value)" class="bg-transparent text-slate-300 font-mono text-[11px] focus:outline-none cursor-pointer">
-            <option value="300000" selected>Poll: 5m (Default)</option>
+            <option value="300000" selected>Poll: 5m</option>
             <option value="600000">Poll: 10m</option>
             <option value="900000">Poll: 15m</option>
             <option value="1800000">Poll: 30m</option>
@@ -342,18 +341,18 @@
         </div>
 
         <!-- Theme Selector (Dark, Light, Auto) -->
-        <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+        <div class="flex items-center gap-1 px-2 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs">
           <i id="theme-icon" class="fa-solid fa-moon text-indigo-400" title="Dashboard Theme"></i>
           <select id="theme-select" onchange="changeThemeMode(this.value)" class="bg-transparent text-slate-300 font-mono text-[11px] focus:outline-none cursor-pointer">
-            <option value="dark" selected>Dark Mode</option>
-            <option value="light">Theme (Light)</option>
-            <option value="auto">Auto (Time)</option>
+            <option value="dark" selected>Dark</option>
+            <option value="light">Light</option>
+            <option value="auto">Auto</option>
           </select>
         </div>
 
         <!-- Find Phone Siren Button & Speech Settings -->
         <div class="flex items-center gap-1">
-          <button id="find-phone-btn" onclick="toggleFindPhone()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all active:scale-95">
+          <button id="find-phone-btn" onclick="toggleFindPhone()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all active:scale-95">
             <i class="fa-solid fa-bullhorn animate-bounce"></i>
             <span data-i18n="find_phone">Find Phone</span>
           </button>
@@ -362,10 +361,9 @@
           </button>
         </div>
 
-        <!-- Log Out / Sign Out Header Button -->
-        <button onclick="logoutUser()" title="Sign Out of Caregiver Dashboard" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 hover:bg-rose-950/40 hover:border-rose-500/50 hover:text-rose-300 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-sm">
-          <i class="fa-solid fa-right-from-bracket text-rose-400"></i>
-          <span class="hidden sm:inline" data-i18n="sign_out_btn">Sign Out</span>
+        <!-- Log Out Header Button (Graphic Only) -->
+        <button onclick="logoutUser()" title="Sign Out / Log Out" class="p-2.5 rounded-xl bg-slate-900 border border-slate-700/80 hover:bg-rose-950/40 hover:border-rose-500/50 text-rose-400 hover:text-rose-300 transition active:scale-95 shadow-sm flex items-center justify-center shrink-0">
+          <i class="fa-solid fa-right-from-bracket text-sm"></i>
         </button>
       </div>
     </div>
@@ -1383,6 +1381,7 @@
           showToast(`Welcome back, ${data.user || username}!`, 'success');
           const userDisp = document.getElementById('sys-username-display');
           if (userDisp) userDisp.textContent = data.user || username;
+          fetchPhoneName();
           if (typeof refreshAllTelemetry === 'function') refreshAllTelemetry();
         } else {
           if (errBox) {
@@ -1421,12 +1420,7 @@
       }
 
       if (newPw !== confirmPw) {
-        showToast('New passwords do not match!', 'danger');
-        return;
-      }
-
-      if (newPw.length < 3) {
-        showToast('New password must be at least 3 characters long', 'warning');
+        showToast('New passwords do not match', 'danger');
         return;
       }
 
@@ -1437,20 +1431,20 @@
           body: JSON.stringify({ old_password: oldPw, new_password: newPw })
         });
         const data = await res.json();
-        if (res.ok && data.success) {
+        if (data.success) {
           showToast('Password updated successfully!', 'success');
           document.getElementById('sys-old-pass').value = '';
           document.getElementById('sys-new-pass').value = '';
           document.getElementById('sys-confirm-pass').value = '';
         } else {
-          showToast(`Error: ${data.error || 'Failed to update password'}`, 'danger');
+          showToast(data.error || 'Failed to update password', 'danger');
         }
       } catch (e) {
-        showToast(`Network error: ${e.message}`, 'danger');
+        showToast(`Error: ${e.message}`, 'danger');
       }
     }
     let currentLang = 'en';
-    let currentPhoneName = localStorage.getItem('caregiver_phone_name') || 'Grandma Evelyn';
+    let currentPhoneName = localStorage.getItem('caregiver_phone_name') || '';
     let map = null;
     let marker = null;
     let circle = null;
@@ -1468,14 +1462,14 @@
       }
       const displayElem = document.getElementById('phone-name-display');
       if (displayElem) {
-        displayElem.textContent = currentPhoneName;
+        displayElem.textContent = currentPhoneName || 'Termux Hub';
       }
       const inputElem = document.getElementById('phone-name-input');
       if (inputElem) {
-        inputElem.value = currentPhoneName;
+        inputElem.value = currentPhoneName || '';
       }
       if (marker) {
-        marker.bindPopup(`${currentPhoneName}'s Phone`);
+        marker.bindPopup(`${currentPhoneName || 'Termux Hub'}'s Phone`);
       }
     }
 
