@@ -361,6 +361,12 @@
             <i class="fa-solid fa-gear"></i>
           </button>
         </div>
+
+        <!-- Log Out / Sign Out Header Button -->
+        <button onclick="logoutUser()" title="Sign Out of Caregiver Dashboard" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 hover:bg-rose-950/40 hover:border-rose-500/50 hover:text-rose-300 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-sm">
+          <i class="fa-solid fa-right-from-bracket text-rose-400"></i>
+          <span class="hidden sm:inline" data-i18n="sign_out_btn">Sign Out</span>
+        </button>
       </div>
     </div>
   </header>
@@ -411,6 +417,10 @@
         <i class="fa-solid fa-phone text-emerald-400"></i>
         <span data-i18n="tab_phone">Telephony</span>
       </button>
+      <button id="tab-btn-camera" onclick="switchTab('camera')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
+        <i class="fa-solid fa-camera text-sky-400"></i>
+        <span data-i18n="tab_camera">Camera</span>
+      </button>
       <button id="tab-btn-log" onclick="switchTab('log')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
         <i class="fa-solid fa-scroll text-rose-400"></i>
         <span data-i18n="tab_log">Server Logs</span>
@@ -418,10 +428,6 @@
       <button id="tab-btn-system" onclick="switchTab('system')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
         <i class="fa-solid fa-gear text-indigo-400"></i>
         <span data-i18n="tab_system">System</span>
-      </button>
-      <button id="tab-btn-camera" onclick="switchTab('camera')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
-        <i class="fa-solid fa-camera text-sky-400"></i>
-        <span data-i18n="tab_camera">Camera</span>
       </button>
     </div>
 
@@ -1443,7 +1449,7 @@
       }
     }
     let currentLang = 'en';
-    let currentPhoneName = 'Grandma Evelyn';
+    let currentPhoneName = localStorage.getItem('caregiver_phone_name') || 'Grandma Evelyn';
     let map = null;
     let marker = null;
     let circle = null;
@@ -1457,13 +1463,30 @@
     function updatePhoneNameUI(name) {
       if (name) {
         currentPhoneName = name;
+        localStorage.setItem('caregiver_phone_name', name);
       }
       const displayElem = document.getElementById('phone-name-display');
       if (displayElem) {
         displayElem.textContent = currentPhoneName;
       }
+      const inputElem = document.getElementById('phone-name-input');
+      if (inputElem) {
+        inputElem.value = currentPhoneName;
+      }
       if (marker) {
         marker.bindPopup(`${currentPhoneName}'s Phone`);
+      }
+    }
+
+    async function fetchPhoneName() {
+      try {
+        const res = await fetch('/api/phone-name');
+        const json = await res.json();
+        if (json.success && json.phone_name) {
+          updatePhoneNameUI(json.phone_name);
+        }
+      } catch (e) {
+        console.error('Error fetching phone name:', e);
       }
     }
 
@@ -1506,7 +1529,7 @@
        TAB NAVIGATION
        ========================================================================= */
     function switchTab(tabId) {
-      const tabs = ['clock', 'intercom', 'gps', 'sos', 'phone', 'log', 'system', 'camera'];
+      const tabs = ['clock', 'intercom', 'gps', 'sos', 'phone', 'camera', 'log', 'system'];
       tabs.forEach(t => {
         const btn = document.getElementById(`tab-btn-${t}`);
         const content = document.getElementById(`tab-content-${t}`);
@@ -3286,9 +3309,11 @@
       const savedLang = localStorage.getItem('caregiver_lang') || 'en';
       setLanguage(savedLang);
       checkWebRTCProtocolSupport();
+      updatePhoneNameUI(currentPhoneName);
 
       const isAuthenticated = await checkAuthStatus();
       if (isAuthenticated) {
+        fetchPhoneName();
         initMap();
         locateSeniorNow();
         initBatteryPolling();

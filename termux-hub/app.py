@@ -392,17 +392,21 @@ def get_system_status():
         "network_info": get_network_info()
     })
 
-@app.route("/api/phone-name", methods=["POST"])
-def update_phone_name():
-    """Updates and persists custom phone name."""
-    data = request.json or {}
-    name = data.get("phone_name", "").strip()
-    if name:
-        hub_state["phone_name"] = name
-        save_settings()
-        log_system_event("PHONE-NAME", f"Phone name updated to '{name}'")
-        return jsonify({"success": True, "phone_name": name})
-    return jsonify({"success": False, "error": "Phone name cannot be empty"}), 400
+@app.route("/api/phone-name", methods=["GET", "POST"])
+def manage_phone_name():
+    """Gets or updates and persists custom phone name."""
+    if request.method == "POST":
+        data = request.json or {}
+        name = data.get("phone_name", "").strip()
+        if name:
+            hub_state["phone_name"] = name
+            save_settings()
+            log_system_event("PHONE-NAME", f"Phone name updated to '{name}'")
+            return jsonify({"success": True, "phone_name": name})
+        return jsonify({"success": False, "error": "Phone name cannot be empty"}), 400
+
+    return jsonify({"success": True, "phone_name": hub_state.get("phone_name", "Grandma Evelyn")})
+
 
 @app.route("/api/logs", methods=["GET"])
 def get_system_logs():
