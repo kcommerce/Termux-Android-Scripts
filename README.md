@@ -86,3 +86,28 @@ The installation process will begin, and you'll be guided through the setup of t
   ```bash
   passwd
   ```
+
+### 10. Setup Auto SSH Login (Passwordless)
+- From your computer (Mac or Linux), run the auto SSH login setup script:
+  ```bash
+  ./bin/setup-ssh-auto-login.sh 10.81.8.161 8022 root
+  ```
+- After setup completes, you can log in without typing your password:
+  ```bash
+  ssh termux-s7
+  ```
+
+### 11. Senior Caregiver Termux Hub (`termux-hub`)
+- Deploy the **Senior Caregiver Termux Hub** backend server, caregiver web dashboard, and autostart configuration:
+  ```bash
+  ./termux-hub/deploy.sh 10.81.8.161 8022 root
+  ```
+- Access the Caregiver Web Dashboard:
+  - **HTTP Dashboard** : `http://10.81.8.161:8888/`
+  - **HTTPS Dashboard**: `https://10.81.8.161:8443/`
+- Check system prerequisites on phone:
+  ```bash
+  ssh termux-s7 '~/eldercare-hub/check-prerequisites.sh'
+  ```
+- For complete documentation, REST API specs, and O&M operations, see [termux-hub/README.md](termux-hub/README.md).
+

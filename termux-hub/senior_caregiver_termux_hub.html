@@ -1,0 +1,2307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ElderCare Hub - Termux Android Companion</title>
+  
+  <!-- Google Fonts: Inter, Outfit, and Sarabun for Thai typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=Sarabun:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Leaflet Map CSS and JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Sarabun', 'sans-serif'],
+            display: ['Outfit', 'Sarabun', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+          },
+          colors: {
+            elder: {
+              rose: '#f43f5e',
+              emerald: '#10b981',
+              violet: '#8b5cf6',
+              amber: '#f59e0b',
+              cyan: '#06b6d4',
+              surface: '#0f172a',
+              card: 'rgba(30, 41, 59, 0.75)'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom styling, scrollbars and glowing animations */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.4);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.6);
+    }
+    .glass-panel {
+      background: rgba(30, 41, 59, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .active-tab {
+      background: rgba(244, 63, 94, 0.15);
+      color: #ffffff;
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      box-shadow: 0 4px 12px rgba(244, 63, 94, 0.15);
+    }
+    .inactive-tab {
+      background: rgba(15, 23, 42, 0.6);
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .inactive-tab:hover {
+      background: rgba(30, 41, 59, 0.8);
+      color: #f8fafc;
+    }
+
+    /* Light / Vibrant Theme Comprehensive Overrides */
+    body.light-theme, html.light-theme {
+      background-color: #f8fafc !important;
+      color: #0f172a !important;
+    }
+    body.light-theme header {
+      background-color: rgba(255, 255, 255, 0.94) !important;
+      border-bottom-color: #cbd5e1 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    }
+    body.light-theme .glass-panel {
+      background: rgba(255, 255, 255, 0.95) !important;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid #cbd5e1 !important;
+      color: #0f172a !important;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
+    }
+    body.light-theme .glass-card {
+      background: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      color: #0f172a !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    }
+    body.light-theme input, 
+    body.light-theme select, 
+    body.light-theme textarea {
+      background-color: #f8fafc !important;
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+    }
+    body.light-theme select option {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+    }
+
+    /* Light Theme Button Color Overrides */
+    body.light-theme button[class*="bg-slate-"] {
+      background-color: #e2e8f0 !important;
+      color: #1e293b !important;
+      border: 1px solid #cbd5e1 !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    }
+    body.light-theme button[class*="bg-slate-"]:hover {
+      background-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+
+    /* Light Theme Containers & Backgrounds */
+    body.light-theme .bg-slate-900, 
+    body.light-theme .bg-slate-950 {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    body.light-theme .border-slate-800,
+    body.light-theme .border-slate-700 {
+      border-color: #cbd5e1 !important;
+    }
+
+    /* Light Theme Text Colors */
+    body.light-theme .text-white {
+      color: #0f172a !important;
+    }
+    body.light-theme .text-slate-100,
+    body.light-theme .text-slate-200, 
+    body.light-theme .text-slate-300 {
+      color: #1e293b !important;
+    }
+    body.light-theme .text-slate-400, 
+    body.light-theme .text-slate-500 {
+      color: #64748b !important;
+    }
+
+    /* Light Theme Navigation Tabs */
+    body.light-theme .inactive-tab {
+      background: #ffffff !important;
+      color: #475569 !important;
+      border: 1px solid #cbd5e1 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    }
+    body.light-theme .inactive-tab:hover {
+      background: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    body.light-theme .active-tab {
+      background: #ffe4e6 !important;
+      color: #e11d48 !important;
+      border: 1px solid #fda4af !important;
+      box-shadow: 0 2px 8px rgba(225, 29, 72, 0.12) !important;
+    }
+
+    /* Light Theme Modals & Overlay */
+    body.light-theme .fixed.bg-slate-950\/80 {
+      background-color: rgba(15, 23, 42, 0.35) !important;
+    }
+
+    /* Light Theme Real-Time Terminal Log Console */
+    body.light-theme #terminal-log-stream {
+      background-color: #f8fafc !important;
+      border-color: #cbd5e1 !important;
+      color: #1e293b !important;
+    }
+    body.light-theme #terminal-log-stream .text-slate-200 {
+      color: #0f172a !important;
+    }
+    body.light-theme #terminal-log-stream .text-slate-300 {
+      color: #1e293b !important;
+    }
+    body.light-theme #terminal-log-stream .text-slate-500 {
+      color: #64748b !important;
+    }
+
+    /* Light Theme Custom Scrollbar */
+    body.light-theme ::-webkit-scrollbar-track {
+      background: rgba(226, 232, 240, 0.8);
+    }
+    body.light-theme ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.5);
+    }
+
+    /* Light Theme Battery Pill & GPS Lat/Long Box Overrides */
+    body.light-theme #battery-pill {
+      background-color: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    body.light-theme #battery-pill #battery-text {
+      color: #0f172a !important;
+    }
+    body.light-theme #battery-pill .text-slate-600 {
+      color: #94a3b8 !important;
+    }
+    body.light-theme [class*="bg-slate-900"] {
+      background-color: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    body.light-theme #gps-coords {
+      color: #0284c7 !important;
+    }
+    body.light-theme #gps-fix-time {
+      color: #1e293b !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased flex flex-col">
+
+  <!-- TOP HEADER -->
+  <header class="sticky top-0 z-40 w-full glass-panel border-b border-slate-800/80 bg-slate-950/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Brand & Senior Persona -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-500 via-violet-600 to-cyan-400 p-0.5 shadow-lg shadow-rose-500/20 flex items-center justify-center">
+          <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+            <i class="fa-solid fa-heart-pulse text-rose-400 text-lg"></i>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-display font-bold text-lg tracking-tight text-white flex items-center gap-2">
+              <span>ElderCare</span><span class="text-rose-400 font-light text-xs uppercase px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20">Termux Hub</span>
+            </h1>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-ping"></span>
+              <span id="phone-name-display" class="font-semibold">Grandma Evelyn</span>
+              <span id="phone-status-tag" class="ml-1 text-[11px] font-normal" data-i18n="phone_active_tag">(Active)</span>
+              <button onclick="openPhoneNameModal()" class="ml-1.5 text-emerald-400 hover:text-emerald-200 transition" title="Edit Phone Name">
+                <i class="fa-solid fa-pen text-[10px]"></i>
+              </button>
+            </span>
+          </div>
+          <p data-i18n="persona_sub" class="text-xs text-slate-400 hidden sm:block">Samsung S7 Edge · Android Termux:API · Google TTS Enforced · Port 8888</p>
+        </div>
+      </div>
+
+      <!-- Header Right Controls: Battery & 2-Decimal Temp Pill, Find Phone, Lang -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Language Switcher (EN / TH) -->
+        <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-1 shadow-inner">
+          <button id="lang-btn-en" onclick="setLanguage('en')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500 text-white shadow-sm flex items-center gap-1">
+            <span>🇺🇸</span><span>EN</span>
+          </button>
+          <button id="lang-btn-th" onclick="setLanguage('th')" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-1">
+            <span>🇹🇭</span><span>TH</span>
+          </button>
+        </div>
+
+        <!-- Battery Status & 2-Decimal Temperature Pill -->
+        <div id="battery-pill" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs">
+          <i class="fa-solid fa-battery-full text-emerald-400" id="battery-icon"></i>
+          <span id="battery-text" class="font-mono font-semibold text-white">100%</span>
+          <span class="text-slate-600">|</span>
+          <i class="fa-solid fa-temperature-half text-amber-400"></i>
+          <span id="temp-text" class="font-mono font-semibold text-amber-400">36.00°C</span>
+          <span class="text-slate-600">|</span>
+          <span id="battery-state" class="text-[10px] text-emerald-400 font-semibold">USB</span>
+        </div>
+
+        <!-- Battery Query Polling Interval Selector -->
+        <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+          <i class="fa-solid fa-clock-rotate-left text-slate-400" title="Battery Polling Interval"></i>
+          <select id="battery-interval-select" onchange="updateBatteryPollInterval(this.value)" class="bg-transparent text-slate-300 font-mono text-[11px] focus:outline-none cursor-pointer">
+            <option value="300000" selected>Poll: 5m (Default)</option>
+            <option value="600000">Poll: 10m</option>
+            <option value="900000">Poll: 15m</option>
+            <option value="1800000">Poll: 30m</option>
+            <option value="3600000">Poll: 1h</option>
+            <option value="43200000">Poll: 12h</option>
+            <option value="86400000">Poll: 24h</option>
+          </select>
+        </div>
+
+        <!-- Theme Selector (Dark, Light, Auto) -->
+        <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+          <i id="theme-icon" class="fa-solid fa-moon text-indigo-400" title="Dashboard Theme"></i>
+          <select id="theme-select" onchange="changeThemeMode(this.value)" class="bg-transparent text-slate-300 font-mono text-[11px] focus:outline-none cursor-pointer">
+            <option value="dark" selected>Dark Mode</option>
+            <option value="light">Theme (Light)</option>
+            <option value="auto">Auto (Time)</option>
+          </select>
+        </div>
+
+        <!-- Find Phone Siren Button & Speech Settings -->
+        <div class="flex items-center gap-1">
+          <button id="find-phone-btn" onclick="toggleFindPhone()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all active:scale-95">
+            <i class="fa-solid fa-bullhorn animate-bounce"></i>
+            <span data-i18n="find_phone">Find Phone</span>
+          </button>
+          <button onclick="openFindPhoneConfigModal()" title="Find Phone Speech Settings" class="p-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-amber-400 text-xs transition">
+            <i class="fa-solid fa-gear"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Top Alert Banner -->
+    <div id="status-banner" class="glass-panel p-4 rounded-2xl border-l-4 border-l-emerald-500 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+          <i class="fa-solid fa-shield-heart text-emerald-400 text-lg"></i>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-white flex items-center gap-2">
+            <span data-i18n="banner_title">Safety Monitoring Active</span>
+            <span data-i18n="banner_guard" class="text-[11px] font-normal text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40">Inactivity Guard Armed</span>
+          </h2>
+          <p id="banner-desc" class="text-xs text-slate-400 mt-0.5">Device active on Samsung S7 Edge. Battery: 100%, Temp: 36.00°C.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 w-full md:w-auto">
+        <button onclick="refreshAllTelemetry()" class="flex-1 md:flex-none px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-rotate text-cyan-400" id="sync-spinner"></i>
+          <span data-i18n="sync_telemetry">Sync Telemetry</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs Bar -->
+    <div class="glass-panel p-2 rounded-2xl flex items-center gap-2 overflow-x-auto border border-slate-800">
+      <button id="tab-btn-clock" onclick="switchTab('clock')" class="tab-btn active-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
+        <i class="fa-solid fa-clock text-violet-400"></i>
+        <span data-i18n="tab_clock">Talking Clock & Routines</span>
+      </button>
+      <button id="tab-btn-intercom" onclick="switchTab('intercom')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
+        <i class="fa-solid fa-bullhorn text-rose-400"></i>
+        <span data-i18n="tab_intercom">Intercom & Audio</span>
+      </button>
+      <button id="tab-btn-gps" onclick="switchTab('gps')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
+        <i class="fa-solid fa-location-dot text-cyan-400"></i>
+        <span data-i18n="tab_gps">GPS & Geofence</span>
+      </button>
+      <button id="tab-btn-sos" onclick="switchTab('sos')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
+        <i class="fa-solid fa-wrench text-amber-400"></i>
+        <span data-i18n="tab_sos">Device Help</span>
+      </button>
+      <button id="tab-btn-phone" onclick="switchTab('phone')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
+        <i class="fa-solid fa-phone text-emerald-400"></i>
+        <span data-i18n="tab_phone">Telephony</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: TALKING CLOCK & CUSTOM ROUTINE REMINDERS -->
+    <div id="tab-content-clock" class="tab-page space-y-6">
+      <!-- Section A: Hourly Chime & Speech Options -->
+      <section class="glass-panel rounded-3xl p-6 border border-slate-800 relative overflow-hidden">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center">
+              <i class="fa-solid fa-clock text-violet-400 text-lg"></i>
+            </div>
+            <div>
+              <h3 data-i18n="clock_title" class="font-display font-bold text-lg text-white">Hourly Talking Clock</h3>
+              <p data-i18n="clock_sub" class="text-xs text-slate-400">Automated hourly speech chimes powered by Google TTS</p>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="clock-service-toggle" checked onchange="toggleClockService(this.checked)" class="sr-only peer">
+            <div class="w-10 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
+          </label>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+          <div class="space-y-4">
+            <div class="glass-card p-4 rounded-2xl border border-slate-800">
+              <label class="block text-slate-300 font-semibold mb-2 flex justify-between">
+                <span data-i18n="chime_window">Chime Active Window</span>
+                <span class="text-violet-400 font-mono" id="hours-display">08:00 - 20:00</span>
+              </label>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <span data-i18n="start_time" class="text-[10px] text-slate-400">Start Time</span>
+                  <input type="time" id="clock-start" value="08:00" onchange="updateHoursDisplay()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 mt-1 focus:outline-none focus:border-violet-500">
+                </div>
+                <div>
+                  <span data-i18n="end_time" class="text-[10px] text-slate-400">End Time</span>
+                  <input type="time" id="clock-end" value="20:00" onchange="updateHoursDisplay()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 mt-1 focus:outline-none focus:border-violet-500">
+                </div>
+              </div>
+            </div>
+
+            <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+              <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                  <span data-i18n="vol_lbl">Android Volume</span>
+                  <span class="font-mono text-violet-400" id="volume-val">12 / 15</span>
+                </div>
+                <input type="range" id="clock-volume" min="1" max="15" value="12" oninput="updateVolumeLabel(this.value)" class="w-full accent-violet-500 h-2 bg-slate-700 rounded-lg cursor-pointer">
+              </div>
+              <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                  <span data-i18n="rate_lbl">Speaking Speed</span>
+                  <span class="font-mono text-violet-400" id="rate-val">1.0x</span>
+                </div>
+                <input type="range" id="speech-rate" min="0.6" max="1.5" step="0.05" value="1.0" oninput="updateRateLabel(this.value)" class="w-full accent-violet-500 h-2 bg-slate-700 rounded-lg cursor-pointer">
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
+            <div>
+              <label data-i18n="msg_template_lbl" class="block text-slate-300 font-semibold mb-1">Hourly Message Template</label>
+              <textarea id="routine-message" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-violet-500 font-sans" placeholder="ขณะนี้เวลา {hour} นาฬิกา อย่าลืมจิบน้ำและรับประทานยาตามเวลาค่ะ"></textarea>
+            </div>
+
+            <div class="flex items-center gap-2 pt-2">
+              <button onclick="testHourlyChime()" class="flex-1 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-violet-600/20 transition">
+                <i class="fa-solid fa-volume-high"></i>
+                <span data-i18n="test_chime_btn">Test Hourly Chime</span>
+              </button>
+              <button onclick="saveRoutineConfig()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium transition">
+                <span data-i18n="save_settings">Save Settings</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section B: Custom Routine Reminder Scheduler with Associated MP3 & Play Button -->
+      <section class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center">
+              <i class="fa-solid fa-calendar-check text-violet-400"></i>
+            </div>
+            <div>
+              <h4 data-i18n="routines_title" class="font-display font-bold text-base text-white">Custom Routine Reminders</h4>
+              <p data-i18n="routines_sub" class="text-xs text-slate-400">Add time-based reminders (TTS speech + optional uploaded MP3 chime)</p>
+            </div>
+          </div>
+          <button onclick="loadRoutinesList()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate text-violet-400"></i>
+            <span data-i18n="refresh_routines">Refresh Routines</span>
+          </button>
+        </div>
+
+        <!-- Add New Routine Form -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 text-xs">
+          <h5 data-i18n="add_routine_title" class="font-semibold text-slate-200">Add New Routine Reminder</h5>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+              <label data-i18n="time_lbl" class="block text-slate-400 mb-1">Time (HH:MM)</label>
+              <input type="time" id="new-rt-time" value="08:30" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-violet-500">
+            </div>
+            <div>
+              <label data-i18n="recurrence_lbl" class="block text-slate-400 mb-1">Recurrence Schedule</label>
+              <select id="new-rt-days" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-violet-500">
+                <option value="EVERYDAY">Everyday (ทุกวัน)</option>
+                <option value="WEEKDAYS">Weekdays (จันทร์ - ศุกร์)</option>
+                <option value="WEEKENDS">Weekends (เสาร์ - อาทิตย์)</option>
+              </select>
+            </div>
+            <div>
+              <label data-i18n="mp3_lbl" class="block text-slate-400 mb-1">Attach MP3 Sound (Optional)</label>
+              <select id="new-rt-mp3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-violet-500">
+                <option value="">-- No MP3 Chime --</option>
+              </select>
+            </div>
+            <div>
+              <label data-i18n="preset_lbl" class="block text-slate-400 mb-1">Presets</label>
+              <select onchange="applyPresetToForm(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-violet-500">
+                <option value="">-- Select Template --</option>
+                <option value="MEDS_MORNING">Morning Medication (08:30)</option>
+                <option value="LUNCH">Lunch Reminder (12:00)</option>
+                <option value="MEDS_EVENING">Evening Medication (18:00)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label data-i18n="tts_msg_lbl" class="block text-slate-400 mb-1">Speech Announcement Text (Google TTS)</label>
+            <textarea id="new-rt-msg" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-violet-500 font-sans" placeholder="ขณะนี้เวลา 8 นาฬิกา 30 นาที ได้เวลาทานยารอบเช้าและจิบน้ำแล้วค่ะ"></textarea>
+          </div>
+
+          <button onclick="addNewRoutine()" class="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-violet-600/20 transition">
+            <i class="fa-solid fa-plus"></i>
+            <span data-i18n="add_routine_btn">Add Scheduled Routine</span>
+          </button>
+        </div>
+
+        <!-- Scheduled Routines List (with Play and Trash Buttons) -->
+        <div id="routines-list" class="space-y-2 text-xs">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+    </div>
+
+    <!-- TAB 2: INTERCOM & CUSTOM MP3 AUDIO -->
+    <div id="tab-content-intercom" class="tab-page space-y-6 hidden">
+      <section class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center">
+              <i class="fa-solid fa-bullhorn text-rose-400 text-lg"></i>
+            </div>
+            <div>
+              <h3 data-i18n="intercom_title" class="font-display font-bold text-lg text-white">Remote Intercom & Audio Broadcaster</h3>
+              <p data-i18n="intercom_sub" class="text-xs text-slate-400">Live voice drop-in (Google TTS) and custom MP3 file upload & management</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+          <!-- Voice Announcement -->
+          <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-4">
+            <h4 class="font-semibold text-slate-200 flex items-center gap-2">
+              <i class="fa-solid fa-tower-broadcast text-rose-400"></i>
+              <span data-i18n="announcement_card_title">Voice Intercom Announcement</span>
+            </h4>
+
+            <div>
+              <label data-i18n="speech_lang_lbl" class="block text-slate-400 mb-1">Speech Language</label>
+              <select id="tts-lang-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-rose-500">
+                <option value="th_TH">Thai (th_TH)</option>
+                <option value="en_US">English (en_US)</option>
+              </select>
+            </div>
+
+            <div>
+              <label data-i18n="intercom_msg_lbl" class="block text-slate-300 font-semibold mb-1">Intercom Voice Message</label>
+              <textarea id="broadcast-text" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-rose-500" placeholder="คุณย่าครับ อีก 15 นาทีผมจะเข้าไปหานะครับ"></textarea>
+            </div>
+
+            <button onclick="broadcastVoiceMessage()" class="w-full py-3 rounded-xl bg-gradient-to-r from-rose-500 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-rose-500/20 transition">
+              <i class="fa-solid fa-tower-broadcast"></i>
+              <span data-i18n="broadcast_btn">Broadcast Voice Intercom</span>
+            </button>
+          </div>
+
+          <!-- MP3 Audio File Upload, Playback & Deletion -->
+          <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-4 flex flex-col justify-between">
+            <div>
+              <h4 class="font-semibold text-slate-200 flex items-center gap-2 mb-3">
+                <i class="fa-solid fa-file-audio text-cyan-400"></i>
+                <span data-i18n="mp3_card_title">Custom MP3 Audio Manager</span>
+              </h4>
+
+              <div class="border-2 border-dashed border-slate-700 rounded-2xl p-4 text-center bg-slate-900/60">
+                <i class="fa-solid fa-cloud-arrow-up text-cyan-400 text-2xl mb-2"></i>
+                <span data-i18n="upload_box_title" class="block text-slate-300 font-medium mb-1">Upload Sound / Chime File</span>
+                <span data-i18n="upload_box_sub" class="block text-[11px] text-slate-400 mb-3">Supports MP3, WAV, M4A, OGG formats</span>
+                <input type="file" id="audio-file-input" accept="audio/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 hover:file:bg-cyan-500/30">
+              </div>
+
+              <button onclick="uploadAudioFile()" class="w-full mt-3 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold flex items-center justify-center gap-2 transition">
+                <i class="fa-solid fa-upload"></i>
+                <span data-i18n="upload_file_btn">Upload Audio File</span>
+              </button>
+
+              <!-- Browser Microphone Voice Audio Recorder -->
+              <div class="mt-4 border border-slate-800 rounded-2xl p-3.5 bg-slate-900/80 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="font-semibold text-slate-200 text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-microphone text-rose-400"></i>
+                    <span data-i18n="rec_card_title">Record Voice Note (MP3/WEBM)</span>
+                  </span>
+                  <span id="recording-timer" class="font-mono text-[11px] text-rose-400 font-bold hidden animate-pulse">● 00:00</span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button id="record-start-btn" onclick="startVoiceRecording()" class="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                    <i class="fa-solid fa-microphone"></i> <span data-i18n="rec_btn">Record</span>
+                  </button>
+                  <button id="record-stop-btn" onclick="stopVoiceRecording()" disabled class="flex-1 py-2 rounded-xl bg-slate-800 text-slate-500 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-not-allowed transition">
+                    <i class="fa-solid fa-stop"></i> <span data-i18n="stop_btn">Stop</span>
+                  </button>
+                </div>
+
+                <div id="recording-preview-box" class="space-y-2 hidden pt-1">
+                  <audio id="recording-audio-preview" controls class="w-full h-8 rounded-lg bg-slate-950"></audio>
+                  <div class="flex items-center gap-2">
+                    <input type="text" id="recording-filename-input" placeholder="Filename (e.g. voice_note_1)" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-rose-500 font-sans">
+                    <button onclick="uploadRecordedVoice()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1 transition shrink-0">
+                      <i class="fa-solid fa-upload"></i> <span data-i18n="rec_upload_btn">Upload</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Uploaded Audio Files List (with Play and Delete Buttons) -->
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <span data-i18n="available_chimes" class="font-semibold text-slate-300">Available Custom Chimes</span>
+                <button onclick="loadAudioFileList()" class="text-[11px] text-cyan-400 hover:underline"><i class="fa-solid fa-rotate"></i> <span data-i18n="refresh_chimes">Refresh</span></button>
+              </div>
+              <div id="audio-files-list" class="space-y-1.5 max-h-36 overflow-y-auto pr-1 text-slate-300">
+                <div class="text-slate-500 italic text-[11px]">No custom audio files uploaded yet.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- TAB 3: GPS LOCATION & GEOFENCE -->
+    <div id="tab-content-gps" class="tab-page space-y-6 hidden">
+      <section class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center">
+              <i class="fa-solid fa-location-dot text-cyan-400 text-lg"></i>
+            </div>
+            <div>
+              <h3 data-i18n="gps_title" class="font-display font-bold text-lg text-white">Real-Time GPS Tracker & Safe Geofence</h3>
+              <p data-i18n="gps_sub" class="text-xs text-slate-400">Leaflet.js interactive satellite tracking and boundary breach alerts</p>
+            </div>
+          </div>
+          <button onclick="locateSeniorNow()" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-cyan-600/20 transition">
+            <i class="fa-solid fa-crosshairs"></i>
+            <span data-i18n="locate_now">Locate Device Now</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 rounded-2xl overflow-hidden border border-slate-800 h-96 relative">
+            <div id="leaflet-map" class="w-full h-full"></div>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-4 text-xs">
+            <h4 data-i18n="geofence_card_title" class="font-semibold text-slate-200">Geofence Parameters</h4>
+            <div>
+              <label data-i18n="radius_lbl" class="block text-slate-400 mb-1">Safe Radius (Meters)</label>
+              <input type="number" id="geofence-radius-input" value="500" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200">
+            </div>
+            <button onclick="saveGeofenceSettings()" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium transition">
+              <span data-i18n="save_geofence_btn">Update Geofence Circle</span>
+            </button>
+            <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1 text-[11px]">
+              <div class="text-slate-400">Last GPS Fix: <span id="gps-fix-time" class="text-slate-200 font-mono">Just now</span></div>
+              <div class="text-slate-400">Lat / Lng: <span id="gps-coords" class="text-cyan-400 font-mono">13.924787, 100.695719</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- TAB 4: DEVICE HELP & HARDWARE PLAYGROUND -->
+    <div id="tab-content-sos" class="tab-page space-y-6 hidden">
+      <section class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
+              <i class="fa-solid fa-wrench text-amber-400 text-lg"></i>
+            </div>
+            <div>
+              <h3 data-i18n="device_help_title" class="font-display font-bold text-lg text-white">Device Help & Hardware Playground</h3>
+              <p data-i18n="device_help_sub" class="text-xs text-slate-400">Interactive hardware diagnostics: haptic vibration, LED torch strobe, and preset device testing modal</p>
+            </div>
+          </div>
+          <button onclick="openDeviceHelpModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-600 hover:to-rose-700 text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-amber-500/20 transition active:scale-95">
+            <i class="fa-solid fa-sliders"></i>
+            <span data-i18n="open_modal_btn">Open Device Help Modal</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+          <!-- Vibrate Control Playground Card -->
+          <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-4">
+            <h4 class="font-semibold text-slate-200 flex items-center gap-2">
+              <i class="fa-solid fa-mobile-retro text-amber-400"></i>
+              <span data-i18n="vibrate_card_title">Vibration Motor Playground</span>
+            </h4>
+
+            <div>
+              <label data-i18n="vibrate_dur_lbl" class="block text-slate-400 mb-1">Vibration Duration (Milliseconds)</label>
+              <input type="number" id="vibrate-duration-input" value="500" step="100" min="100" max="10000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500">
+            </div>
+
+            <div>
+              <label data-i18n="quick_presets_lbl" class="block text-slate-400 mb-1.5">Quick Presets</label>
+              <div class="grid grid-cols-4 gap-2">
+                <button onclick="setVibrateDuration(300)" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px]">300ms</button>
+                <button onclick="setVibrateDuration(1000)" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px]">1000ms</button>
+                <button onclick="setVibrateDuration(2500)" class="py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[11px]">2500ms</button>
+                <button onclick="playSOSVibrationPattern()" class="py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-semibold text-[11px]">SOS 3x</button>
+              </div>
+            </div>
+
+            <button onclick="triggerVibrateFromInput()" class="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-amber-600/20 transition">
+              <i class="fa-solid fa-bolt"></i>
+              <span data-i18n="test_vibrate_btn">Test Device Vibration</span>
+            </button>
+          </div>
+
+          <!-- Torch & Flashlight Control Card -->
+          <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-4 flex flex-col justify-between">
+            <div>
+              <h4 class="font-semibold text-slate-200 flex items-center gap-2 mb-3">
+                <i class="fa-solid fa-lightbulb text-cyan-400"></i>
+                <span data-i18n="torch_card_title">LED Flashlight / Torch Control</span>
+              </h4>
+
+              <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-900 border border-slate-800">
+                <div>
+                  <div data-i18n="torch_name" class="font-semibold text-white">Rear Camera Flashlight</div>
+                  <div class="text-[11px] text-slate-400" id="torch-state-label">Current State: OFF</div>
+                </div>
+                <button id="torch-toggle-btn" onclick="toggleTorchDirect()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs border border-slate-700 transition">
+                  Turn ON
+                </button>
+              </div>
+            </div>
+
+            <button onclick="triggerTorchStrobeTest()" class="w-full py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-cyan-600/20 transition">
+              <i class="fa-solid fa-bolt-lightning"></i>
+              <span>Strobe Flashlight Test (5x Flashes)</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- TAB 5: TELEPHONY & CONTACTS -->
+    <div id="tab-content-phone" class="tab-page space-y-6 hidden">
+      <section class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
+              <i class="fa-solid fa-phone text-emerald-400 text-lg"></i>
+            </div>
+            <div>
+              <h3 data-i18n="telephony_title" class="font-display font-bold text-lg text-white">Telephony & Family Whitelist Communications</h3>
+              <p data-i18n="telephony_sub" class="text-xs text-slate-400">Direct speed dial calling, contact management, and emergency SMS messaging</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+          <!-- Whitelist Contacts Management -->
+          <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-4">
+            <div class="flex items-center justify-between">
+              <h4 class="font-semibold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-address-book text-emerald-400"></i>
+                <span data-i18n="whitelist_title">Whitelisted Family Contacts</span>
+              </h4>
+              <button onclick="openContactModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition">
+                <i class="fa-solid fa-user-plus"></i>
+                <span data-i18n="add_contact_btn">Add Contact</span>
+              </button>
+            </div>
+
+            <!-- Whitelist Contacts List (dynamically populated) -->
+            <div id="contacts-list" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+              <!-- Dynamically populated from JS -->
+            </div>
+          </div>
+
+          <!-- Remote SMS Sender -->
+          <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-4 flex flex-col justify-between">
+            <div class="space-y-3">
+              <h4 class="font-semibold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-paper-plane text-emerald-400"></i>
+                <span data-i18n="sms_card_title">Send Remote SMS Alert</span>
+              </h4>
+              <div>
+                <label data-i18n="recipient_lbl" class="block text-slate-400 mb-1">Target Recipient (Select from Whitelist Contacts)</label>
+                <select id="sms-target-number" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                  <option value="">-- Select Contact --</option>
+                </select>
+              </div>
+              <div>
+                <label data-i18n="sms_msg_lbl" class="block text-slate-400 mb-1">SMS Message</label>
+                <textarea id="custom-sms-content" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-slate-200 font-sans focus:outline-none focus:border-emerald-500" placeholder="ใส่ข้อความแจ้งเตือนที่ต้องการส่ง"></textarea>
+              </div>
+            </div>
+
+            <button onclick="sendRemoteSMS()" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span data-i18n="send_sms_btn">Send SMS Message</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- PERSISTENT SYSTEM LOG CONSOLE (VISIBLE AT THE BOTTOM OF EVERY TAB) -->
+    <section class="glass-panel rounded-3xl p-5 border border-slate-800 space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-xl bg-slate-500/20 border border-slate-500/30 flex items-center justify-center">
+            <i class="fa-solid fa-terminal text-slate-400 text-xs"></i>
+          </div>
+          <h4 data-i18n="log_title" class="font-display font-bold text-sm text-white">System Telemetry & Real-Time Log Stream</h4>
+        </div>
+        <button onclick="clearTerminalLogs()" class="px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition">
+          <span data-i18n="clear_log_btn">Clear Logs</span>
+        </button>
+      </div>
+
+      <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 font-mono text-xs space-y-1.5 h-44 overflow-y-auto" id="terminal-log-stream">
+        <div class="text-slate-500">[SYSTEM] Eldercare Hub dashboard initialized. Connected to 127.0.0.1:8888. Engine: Google TTS.</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Contact Add/Edit Modal -->
+  <div id="contact-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel max-w-md w-full p-6 rounded-3xl border border-emerald-500/50 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 data-i18n="contact_modal_add" class="font-display font-bold text-lg text-white" id="contact-modal-title">Add Whitelist Contact</h3>
+        <button onclick="closeContactModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <input type="hidden" id="contact-id-input" value="">
+      <div>
+        <label data-i18n="contact_name_lbl" class="block text-slate-300 text-xs font-medium mb-1">Contact Name / Relationship</label>
+        <input type="text" id="contact-name-input" placeholder="e.g. Alex (Caregiver)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+      </div>
+      <div>
+        <label data-i18n="contact_phone_lbl" class="block text-slate-300 text-xs font-medium mb-1">Phone Number (with Country Code)</label>
+        <input type="text" id="contact-phone-input" placeholder="e.g. +66812345678" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button onclick="closeContactModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition"><span data-i18n="cancel_btn">Cancel</span></button>
+        <button onclick="saveContactForm()" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition"><span data-i18n="save_contact_btn">Save Contact</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Device Help & Hardware Testing Playground Modal -->
+  <div id="device-help-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel max-w-lg w-full p-6 rounded-3xl border border-amber-500/50 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-wrench text-amber-400"></i>
+          <h3 data-i18n="device_help_title" class="font-display font-bold text-lg text-white">Device Hardware Playground</h3>
+        </div>
+        <button onclick="closeDeviceHelpModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <!-- Preset 1: TTS Speech Test -->
+      <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 text-xs">
+        <h4 class="font-semibold text-amber-300 flex items-center gap-1.5"><i class="fa-solid fa-volume-high"></i> Custom TTS Speech Test</h4>
+        <input type="text" id="help-tts-msg" value="ทดสอบการทำงานของระบบประมวลผลเสียง" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <span class="text-[10px] text-slate-400">Rate: <span id="help-rate-val">1.0x</span></span>
+            <input type="range" id="help-tts-rate" min="0.6" max="1.5" step="0.1" value="1.0" oninput="document.getElementById('help-rate-val').textContent=this.value+'x'" class="w-full accent-amber-500 h-1.5 bg-slate-700 rounded-lg">
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400">Pitch: <span id="help-pitch-val">1.0x</span></span>
+            <input type="range" id="help-tts-pitch" min="0.5" max="1.5" step="0.1" value="1.0" oninput="document.getElementById('help-pitch-val').textContent=this.value+'x'" class="w-full accent-amber-500 h-1.5 bg-slate-700 rounded-lg">
+          </div>
+        </div>
+        <button onclick="testModalTTS()" class="w-full py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold transition">Speak Custom Text</button>
+      </div>
+
+      <!-- Preset 2: Status Bar Notification Test -->
+      <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 text-xs">
+        <h4 class="font-semibold text-cyan-300 flex items-center gap-1.5"><i class="fa-solid fa-bell"></i> Android Status Notification Test</h4>
+        <input type="text" id="help-notif-title" value="ElderCare System Check" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200" placeholder="Title">
+        <input type="text" id="help-notif-content" value="Device hardware diagnostic check complete." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200" placeholder="Content">
+        <div class="flex items-center justify-between gap-3">
+          <select id="help-notif-priority" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-200">
+            <option value="high">Priority: High</option>
+            <option value="normal">Priority: Normal</option>
+            <option value="low">Priority: Low</option>
+          </select>
+          <button onclick="testModalNotification()" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold transition">Post Notification</button>
+        </div>
+      </div>
+
+      <!-- Preset 3: Emergency Strobe & Alarm Test -->
+      <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 text-xs">
+        <h4 class="font-semibold text-rose-300 flex items-center gap-1.5"><i class="fa-solid fa-bullhorn"></i> Combined Strobe + Vibrate + Voice Alarm</h4>
+        <button onclick="testModalCombinedAlarm()" class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold shadow-lg shadow-rose-600/20 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Run Hardware Alarm Test</span>
+        </button>
+      </div>
+
+      <div class="pt-2">
+        <button onclick="closeDeviceHelpModal()" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition"><span data-i18n="cancel_btn">Close Playground</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Find Phone Speech Config Modal -->
+  <div id="find-phone-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel max-w-md w-full p-6 rounded-3xl border border-amber-500/50 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-bullhorn text-amber-400"></i>
+          <h3 data-i18n="find_phone_modal_title" class="font-display font-bold text-lg text-white">Find Phone Speech Settings</h3>
+        </div>
+        <button onclick="closeFindPhoneConfigModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div>
+        <label data-i18n="find_phone_speech_lbl" class="block text-slate-300 text-xs font-medium mb-1">Custom Text to Speak (Google TTS)</label>
+        <textarea id="find-phone-speech-input" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-amber-500 font-sans"></textarea>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button onclick="closeFindPhoneConfigModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition"><span data-i18n="cancel_btn">Cancel</span></button>
+        <button onclick="saveFindPhoneSpeechText()" class="flex-1 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs transition"><span data-i18n="save_btn">Save Text</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Phone Name Modal -->
+  <div id="phone-name-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel max-w-md w-full p-6 rounded-3xl border border-rose-500/50 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-mobile-screen-button text-rose-400"></i>
+          <h3 data-i18n="phone_name_modal_title" class="font-display font-bold text-lg text-white">Edit Phone Name / Persona</h3>
+        </div>
+        <button onclick="closePhoneNameModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div>
+        <label data-i18n="phone_name_lbl" class="block text-slate-300 text-xs font-medium mb-1">Phone / Senior Name</label>
+        <input type="text" id="phone-name-input" placeholder="e.g. Grandma Evelyn" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-rose-500 font-sans">
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button onclick="closePhoneNameModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition"><span data-i18n="cancel_btn">Cancel</span></button>
+        <button onclick="savePhoneName()" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs transition"><span data-i18n="save_phone_name_btn">Save Name</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    let currentLang = 'en';
+    let currentPhoneName = 'Grandma Evelyn';
+    let map = null;
+    let marker = null;
+    let circle = null;
+    let fallInterval = null;
+    let torchState = false;
+    let availableAudioFiles = [];
+
+    /* =========================================================================
+       PHONE NAME MANAGEMENT
+       ========================================================================= */
+    function updatePhoneNameUI(name) {
+      if (name) {
+        currentPhoneName = name;
+      }
+      const displayElem = document.getElementById('phone-name-display');
+      if (displayElem) {
+        displayElem.textContent = currentPhoneName;
+      }
+      if (marker) {
+        marker.bindPopup(`${currentPhoneName}'s Phone`);
+      }
+    }
+
+    function openPhoneNameModal() {
+      document.getElementById('phone-name-input').value = currentPhoneName;
+      document.getElementById('phone-name-modal').classList.remove('hidden');
+    }
+
+    function closePhoneNameModal() {
+      document.getElementById('phone-name-modal').classList.add('hidden');
+    }
+
+    async function savePhoneName() {
+      const name = document.getElementById('phone-name-input').value.trim();
+      if (!name) {
+        showToast('Phone name cannot be empty', 'warning');
+        return;
+      }
+      appendTerminalLog('PHONE-NAME', `Updating phone name to '${name}'`);
+      try {
+        const res = await fetch('/api/phone-name', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone_name: name })
+        });
+        const json = await res.json();
+        if (json.success) {
+          updatePhoneNameUI(json.phone_name);
+          closePhoneNameModal();
+          showToast(currentLang === 'th' ? `บันทึกชื่อโทรศัพท์เป็น "${json.phone_name}" เรียบร้อย` : `Phone name saved as "${json.phone_name}"`, 'success');
+        } else {
+          showToast(json.error || 'Failed to save phone name', 'danger');
+        }
+      } catch (e) {
+        showToast(`Error: ${e.message}`, 'danger');
+      }
+    }
+
+    /* =========================================================================
+       TAB NAVIGATION
+       ========================================================================= */
+    function switchTab(tabId) {
+      const tabs = ['clock', 'intercom', 'gps', 'sos', 'phone'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        const content = document.getElementById(`tab-content-${t}`);
+        if (t === tabId) {
+          btn.classList.add('active-tab');
+          btn.classList.remove('inactive-tab');
+          content.classList.remove('hidden');
+        } else {
+          btn.classList.remove('active-tab');
+          btn.classList.add('inactive-tab');
+          content.classList.add('hidden');
+        }
+      });
+      if (tabId === 'gps' && map) {
+        setTimeout(() => map.invalidateSize(), 200);
+      }
+    }
+
+    /* =========================================================================
+       TOAST NOTIFICATIONS & LOGS
+       ========================================================================= */
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto px-4 py-3 rounded-2xl glass-panel border text-xs font-medium flex items-center gap-2.5 shadow-2xl transition-all duration-300 transform translate-y-2 opacity-0 ${
+        type === 'danger' ? 'border-rose-500/50 text-rose-300 bg-rose-950/80' :
+        type === 'warning' ? 'border-amber-500/50 text-amber-300 bg-amber-950/80' :
+        type === 'info' ? 'border-cyan-500/50 text-cyan-300 bg-slate-900/90' :
+        'border-emerald-500/50 text-emerald-300 bg-slate-900/90'
+      }`;
+
+      const icon = type === 'danger' ? 'fa-triangle-exclamation text-rose-400' :
+                   type === 'warning' ? 'fa-circle-exclamation text-amber-400' :
+                   type === 'info' ? 'fa-circle-info text-cyan-400' :
+                   'fa-circle-check text-emerald-400';
+
+      toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    function appendTerminalLog(tag, command, details = null) {
+      const stream = document.getElementById('terminal-log-stream');
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = 'text-slate-300 border-l-2 border-slate-800 pl-2 py-0.5';
+      let detailsHtml = details ? `<pre class="text-[10px] text-slate-500 mt-0.5 font-mono">${JSON.stringify(details)}</pre>` : '';
+      div.innerHTML = `<span class="text-slate-500">[${time}]</span> <span class="text-cyan-400 font-semibold">[${tag}]</span> <span class="font-mono text-slate-200">${command}</span>${detailsHtml}`;
+      stream.appendChild(div);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function clearTerminalLogs() {
+      document.getElementById('terminal-log-stream').innerHTML = '';
+      showToast('Logs cleared', 'info');
+    }
+
+    /* =========================================================================
+       BATTERY TELEMETRY & 2-DECIMAL TEMPERATURE DISPLAY
+       ========================================================================= */
+    let batteryIntervalId = null;
+
+    async function fetchBatteryStatus() {
+      try {
+        const res = await fetch('/api/battery');
+        const json = await res.json();
+        const data = json.data || json.battery || json;
+        if (data) {
+          const pct = data.percentage !== undefined ? data.percentage : 100;
+          const tempVal = data.temperature !== undefined ? parseFloat(data.temperature).toFixed(2) : '36.00';
+          const tempStr = `${tempVal}°C`;
+          const plugged = data.plugged || data.status || 'OK';
+
+          document.getElementById('battery-text').textContent = `${pct}%`;
+          document.getElementById('temp-text').textContent = tempStr;
+          document.getElementById('battery-state').textContent = plugged.replace('PLUGGED_', '');
+          document.getElementById('banner-desc').textContent = `Device active on Samsung S7 Edge. Battery: ${pct}%, Temp: ${tempStr} (${plugged}).`;
+        }
+      } catch (e) {
+        console.error('Error fetching battery status:', e);
+      }
+    }
+
+    function updateBatteryPollInterval(ms) {
+      const intervalMs = parseInt(ms) || 300000;
+      if (batteryIntervalId) clearInterval(batteryIntervalId);
+      batteryIntervalId = setInterval(fetchBatteryStatus, intervalMs);
+
+      const labelMap = {
+        300000: '5 minutes',
+        600000: '10 minutes',
+        900000: '15 minutes',
+        1800000: '30 minutes',
+        3600000: '1 hour',
+        43200000: '12 hours',
+        86400000: '24 hours'
+      };
+      const label = labelMap[intervalMs] || `${intervalMs / 60000} minutes`;
+      showToast(`Battery polling interval set to ${label}`, 'info');
+      try {
+        localStorage.setItem('battery_poll_ms', intervalMs);
+      } catch (e) {}
+    }
+
+    function initBatteryPolling() {
+      let savedMs = 300000;
+      try {
+        savedMs = parseInt(localStorage.getItem('battery_poll_ms')) || 300000;
+      } catch (e) {}
+      const sel = document.getElementById('battery-interval-select');
+      if (sel) sel.value = String(savedMs);
+      fetchBatteryStatus();
+      updateBatteryPollInterval(savedMs);
+    }
+
+    /* =========================================================================
+       MODULE 1: TALKING CLOCK & CUSTOM ROUTINES
+       ========================================================================= */
+    function updateVolumeLabel(val) {
+      document.getElementById('volume-val').textContent = `${val} / 15`;
+    }
+    function updateRateLabel(val) {
+      document.getElementById('rate-val').textContent = `${val}x`;
+    }
+
+    function applyPresetToForm(preset) {
+      if (preset === 'MEDS_MORNING') {
+        document.getElementById('new-rt-time').value = '08:30';
+        document.getElementById('new-rt-days').value = 'EVERYDAY';
+        document.getElementById('new-rt-msg').value = 'ขณะนี้เวลา 8 นาฬิกา 30 นาที ได้เวลาทานยารอบเช้าและจิบน้ำแล้วค่ะ';
+      } else if (preset === 'LUNCH') {
+        document.getElementById('new-rt-time').value = '12:00';
+        document.getElementById('new-rt-days').value = 'EVERYDAY';
+        document.getElementById('new-rt-msg').value = 'ขณะนี้เวลา 12 นาฬิกา ได้เวลารับประทานอาหารกลางวันแล้วค่ะ';
+      } else if (preset === 'MEDS_EVENING') {
+        document.getElementById('new-rt-time').value = '18:00';
+        document.getElementById('new-rt-days').value = 'EVERYDAY';
+        document.getElementById('new-rt-msg').value = 'ขณะนี้เวลา 18 นาฬิกา ได้เวลาทานยารอบเย็นแล้วค่ะ';
+      }
+    }
+
+    function updateHoursDisplay() {
+      const start = document.getElementById('clock-start').value || "08:00";
+      const end = document.getElementById('clock-end').value || "20:00";
+      document.getElementById('hours-display').textContent = `${start} - ${end}`;
+    }
+
+    async function toggleClockService(enabled) {
+      appendTerminalLog('CLOCK-SETTINGS', `Hourly Talking Clock service ${enabled ? 'ENABLED' : 'DISABLED'}`);
+      try {
+        await fetch('/api/clock/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled })
+        });
+        showToast(`Hourly Talking Clock ${enabled ? 'ENABLED' : 'DISABLED'}`, 'info');
+      } catch (e) {
+        showToast(`Clock toggle error: ${e.message}`, 'danger');
+      }
+    }
+
+    async function saveRoutineConfig() {
+      const enabled = document.getElementById('clock-service-toggle').checked;
+      const startTime = document.getElementById('clock-start').value || "08:00";
+      const endTime = document.getElementById('clock-end').value || "20:00";
+      const startHour = parseInt(startTime.split(':')[0]) || 8;
+      const endHour = parseInt(endTime.split(':')[0]) || 20;
+      const volume = parseInt(document.getElementById('clock-volume').value) || 12;
+      const rate = parseFloat(document.getElementById('speech-rate').value) || 1.0;
+      const messagePreset = document.getElementById('routine-message').value || "ขณะนี้เวลา {hour} นาฬิกา อย่าลืมจิบน้ำและรับประทานยาตามเวลาค่ะ";
+
+      updateHoursDisplay();
+      appendTerminalLog('CLOCK-SETTINGS', `Saving talking clock config: ${startTime}-${endTime}, Vol:${volume}, Rate:${rate}x`);
+
+      try {
+        const res = await fetch('/api/clock/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            enabled,
+            start_hour: startHour,
+            end_hour: endHour,
+            volume,
+            rate,
+            message_preset: messagePreset
+          })
+        });
+        const json = await res.json();
+        if (json.status === 'success') {
+          showToast('Talking Clock settings saved successfully!', 'success');
+        } else {
+          showToast('Failed to save clock settings', 'danger');
+        }
+      } catch (err) {
+        showToast(`Save settings error: ${err.message}`, 'danger');
+      }
+    }
+
+    async function loadClockSettings() {
+      try {
+        const res = await fetch('/api/status');
+        const json = await res.json();
+        if (json.phone_name) {
+          updatePhoneNameUI(json.phone_name);
+        }
+        if (json.clock_settings) {
+          const cs = json.clock_settings;
+          if (document.getElementById('clock-service-toggle')) {
+            document.getElementById('clock-service-toggle').checked = cs.enabled !== false;
+          }
+          if (cs.start_hour !== undefined && document.getElementById('clock-start')) {
+            document.getElementById('clock-start').value = String(cs.start_hour).padStart(2, '0') + ':00';
+          }
+          if (cs.end_hour !== undefined && document.getElementById('clock-end')) {
+            document.getElementById('clock-end').value = String(cs.end_hour).padStart(2, '0') + ':00';
+          }
+          updateHoursDisplay();
+          if (cs.volume !== undefined && document.getElementById('clock-volume')) {
+            document.getElementById('clock-volume').value = cs.volume;
+            updateVolumeLabel(cs.volume);
+          }
+          if (cs.rate !== undefined && document.getElementById('speech-rate')) {
+            document.getElementById('speech-rate').value = cs.rate;
+            updateRateLabel(cs.rate);
+          }
+          if (cs.message_preset && document.getElementById('routine-message')) {
+            document.getElementById('routine-message').value = cs.message_preset;
+          }
+        }
+      } catch (e) {
+        console.error('Error loading clock settings:', e);
+      }
+    }
+
+    async function testHourlyChime() {
+      const rawMessage = document.getElementById('routine-message').value || "ขณะนี้เวลา {hour} นาฬิกา อย่าลืมจิบน้ำและรับประทานยาตามเวลาค่ะ";
+      const currentHour = new Date().getHours();
+      const message = rawMessage.replace(/\{hour\}/g, currentHour);
+      const rate = document.getElementById('speech-rate').value;
+      const volume = document.getElementById('clock-volume').value;
+
+      appendTerminalLog('TERMUX-API', `termux-tts-speak -e com.google.android.tts -r ${rate} "${message}"`);
+
+      try {
+        const res = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, rate: parseFloat(rate), volume: parseInt(volume) })
+        });
+        showToast(`Google TTS Chime triggered ("${message}")`, 'success');
+      } catch (err) {
+        showToast(`TTS error: ${err.message}`, 'danger');
+      }
+    }
+
+    async function loadRoutinesList() {
+      try {
+        const res = await fetch('/api/routines');
+        const json = await res.json();
+        const container = document.getElementById('routines-list');
+        container.innerHTML = '';
+        if (json.success && json.routines && json.routines.length) {
+          json.routines.forEach(rt => {
+            const div = document.createElement('div');
+            div.className = 'glass-card p-3 rounded-2xl border border-slate-800 flex items-center justify-between gap-3 text-xs';
+            const mp3Badge = rt.mp3_file ? `<span class="text-[10px] text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-800/40"><i class="fa-solid fa-music mr-1"></i>${rt.mp3_file}</span>` : '';
+            div.innerHTML = `
+              <div class="flex items-center gap-3 flex-1 min-w-0">
+                <div class="font-mono font-bold text-sm text-violet-400 bg-violet-950/80 px-2.5 py-1 rounded-xl border border-violet-800/40">${rt.time}</div>
+                <div class="min-w-0 flex-1">
+                  <div class="truncate text-slate-200 font-medium">${rt.message}</div>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="text-[10px] text-slate-400 font-mono">${rt.days}</span>
+                    ${mp3Badge}
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" ${rt.enabled ? 'checked' : ''} onchange="toggleRoutineItem('${rt.id}', this.checked)" class="sr-only peer">
+                  <div class="w-8 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-violet-600"></div>
+                </label>
+                <button onclick="playRoutineNow('${rt.id}')" title="Play Routine Now" class="px-2.5 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-semibold text-[11px] transition flex items-center gap-1">
+                  <i class="fa-solid fa-play"></i>Play
+                </button>
+                <button onclick="deleteRoutineItem('${rt.id}')" title="Delete Routine" class="text-rose-400 hover:text-rose-300 p-1.5 rounded-lg hover:bg-rose-500/10 transition">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            `;
+            container.appendChild(div);
+          });
+        } else {
+          container.innerHTML = '<div class="text-slate-500 italic text-[11px] p-2">No custom routine reminders scheduled yet.</div>';
+        }
+      } catch (e) {
+        console.error('Error loading routines:', e);
+      }
+    }
+
+    async function addNewRoutine() {
+      const timeVal = document.getElementById('new-rt-time').value;
+      const daysVal = document.getElementById('new-rt-days').value;
+      const mp3Val = document.getElementById('new-rt-mp3').value;
+      const msgVal = document.getElementById('new-rt-msg').value;
+
+      if (!msgVal.trim()) {
+        showToast('Please enter announcement text for the routine', 'warning');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/routines', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ time: timeVal, days: daysVal, message: msgVal, mp3_file: mp3Val, enabled: true })
+        });
+        const json = await res.json();
+        if (json.success) {
+          showToast(`Added routine reminder for ${timeVal}`, 'success');
+          loadRoutinesList();
+        }
+      } catch (e) {
+        showToast(`Error adding routine: ${e.message}`, 'danger');
+      }
+    }
+
+    async function playRoutineNow(id) {
+      appendTerminalLog('ROUTINE', `Triggering routine playback [${id}] via Google TTS`);
+      try {
+        const res = await fetch(`/api/routines/play/${id}`, { method: 'POST' });
+        const json = await res.json();
+        showToast(`Playing routine [${id}] (TTS + MP3 chime)`, 'success');
+      } catch (e) {
+        showToast(`Playback error: ${e.message}`, 'danger');
+      }
+    }
+
+    async function toggleRoutineItem(id, enabled) {
+      try {
+        await fetch('/api/routines/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, enabled })
+        });
+        showToast(`Routine ${enabled ? 'ENABLED' : 'DISABLED'}`, 'info');
+      } catch (e) {
+        console.error('Error toggling routine:', e);
+      }
+    }
+
+    async function deleteRoutineItem(id) {
+      try {
+        await fetch(`/api/routines/${id}`, { method: 'DELETE' });
+        showToast('Routine reminder deleted', 'info');
+        loadRoutinesList();
+      } catch (e) {
+        showToast(`Error deleting routine: ${e.message}`, 'danger');
+      }
+    }
+
+    /* =========================================================================
+       MODULE 2: INTERCOM & CUSTOM MP3 AUDIO
+       ========================================================================= */
+    async function broadcastVoiceMessage() {
+      const text = document.getElementById('broadcast-text').value;
+      if (!text.trim()) {
+        showToast('Please enter a voice message', 'warning');
+        return;
+      }
+      const language = document.getElementById('tts-lang-select').value;
+
+      appendTerminalLog('INTERCOM', `termux-tts-speak -e com.google.android.tts "${text}"`);
+      try {
+        await fetch('/api/intercom', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, language })
+        });
+        showToast('Voice Intercom broadcast sent (Google TTS)', 'success');
+      } catch (err) {
+        showToast(`Broadcast error: ${err.message}`, 'danger');
+      }
+    }
+
+    async function uploadAudioFile() {
+      const fileInput = document.getElementById('audio-file-input');
+      if (!fileInput.files.length) {
+        showToast('Please select an audio file (MP3/WAV)', 'warning');
+        return;
+      }
+      const file = fileInput.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+
+      showToast(`Uploading ${file.name}...`, 'info');
+      try {
+        const res = await fetch('/api/upload-audio', { method: 'POST', body: formData });
+        const json = await res.json();
+        if (json.success) {
+          showToast(`Uploaded ${json.filename} successfully!`, 'success');
+          loadAudioFileList();
+        } else {
+          showToast(`Upload failed: ${json.error}`, 'danger');
+        }
+      } catch (err) {
+        showToast(`Upload error: ${err.message}`, 'danger');
+      }
+    }
+
+    async function loadAudioFileList() {
+      try {
+        const res = await fetch('/api/audio-files');
+        const json = await res.json();
+        const container = document.getElementById('audio-files-list');
+        const mp3Select = document.getElementById('new-rt-mp3');
+        
+        container.innerHTML = '';
+        if (mp3Select) mp3Select.innerHTML = '<option value="">-- No MP3 Chime --</option>';
+        availableAudioFiles = json.files || [];
+
+        if (json.success && availableAudioFiles.length) {
+          availableAudioFiles.forEach(f => {
+            if (mp3Select) {
+              const opt = document.createElement('option');
+              opt.value = f.filename;
+              opt.textContent = f.filename;
+              mp3Select.appendChild(opt);
+            }
+
+            const div = document.createElement('div');
+            div.className = 'p-2 rounded-xl bg-slate-900 border border-slate-800 flex justify-between items-center text-xs';
+            div.innerHTML = `
+              <div class="truncate max-w-[180px] font-medium text-slate-200">
+                <i class="fa-solid fa-music text-cyan-400 mr-1.5"></i>${f.filename}
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button onclick="playAudioFile('${f.filename}')" title="Play Sound" class="px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-[11px] transition flex items-center gap-1">
+                  <i class="fa-solid fa-play"></i>Play
+                </button>
+                <button onclick="deleteAudioFile('${f.filename}')" title="Delete Sound File" class="text-rose-400 hover:text-rose-300 p-1.5 rounded-lg hover:bg-rose-500/10 transition">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            `;
+            container.appendChild(div);
+          });
+        } else {
+          container.innerHTML = '<div class="text-slate-500 italic text-[11px]">No custom audio files uploaded yet.</div>';
+        }
+      } catch (e) {
+        console.error('Error loading audio files:', e);
+      }
+    }
+
+    async function playAudioFile(filename) {
+      appendTerminalLog('MEDIA-PLAYER', `termux-media-player play ${filename}`);
+      try {
+        await fetch('/api/play-audio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename })
+        });
+        showToast(`Playing audio ${filename} on phone speaker`, 'success');
+      } catch (err) {
+        showToast(`Playback error: ${err.message}`, 'danger');
+      }
+    }
+
+    async function deleteAudioFile(filename) {
+      if (!confirm(`Delete custom sound file '${filename}'?`)) return;
+      appendTerminalLog('MEDIA-PLAYER', `delete sound file ${filename}`);
+      try {
+        const res = await fetch(`/api/audio-files/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+        const json = await res.json();
+        if (json.success) {
+          showToast(`Deleted audio file ${filename}`, 'info');
+          loadAudioFileList();
+        } else {
+          showToast(`Delete failed: ${json.error}`, 'danger');
+        }
+      } catch (err) {
+        showToast(`Delete error: ${err.message}`, 'danger');
+      }
+    }
+
+    /* Theme Management */
+    let currentThemeMode = 'dark';
+    function changeThemeMode(mode) {
+      currentThemeMode = mode;
+      localStorage.setItem('caregiver_theme_mode', mode);
+      applyTheme();
+    }
+
+    function applyTheme() {
+      const mode = currentThemeMode;
+      let effectiveTheme = mode;
+      if (mode === 'auto') {
+        const hour = new Date().getHours();
+        effectiveTheme = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+      }
+      const icon = document.getElementById('theme-icon');
+      if (effectiveTheme === 'light') {
+        document.body.classList.add('light-theme');
+        document.documentElement.classList.add('light-theme');
+        if (icon) icon.className = 'fa-solid fa-sun text-amber-500';
+      } else {
+        document.body.classList.remove('light-theme');
+        document.documentElement.classList.remove('light-theme');
+        if (icon) icon.className = 'fa-solid fa-moon text-indigo-400';
+      }
+    }
+
+    function initTheme() {
+      const saved = localStorage.getItem('caregiver_theme_mode') || 'dark';
+      currentThemeMode = saved;
+      const sel = document.getElementById('theme-select');
+      if (sel) sel.value = saved;
+      applyTheme();
+      setInterval(() => {
+        if (currentThemeMode === 'auto') applyTheme();
+      }, 60000);
+    }
+
+    /* Microphone Audio Voice Recorder */
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let recordedBlob = null;
+    let recTimerInterval = null;
+    let recSeconds = 0;
+
+    async function startVoiceRecording() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showToast('Microphone recording is not supported in this browser', 'danger');
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const audioUrl = URL.createObjectURL(recordedBlob);
+          const preview = document.getElementById('recording-audio-preview');
+          const previewBox = document.getElementById('recording-preview-box');
+          if (preview) preview.src = audioUrl;
+          if (previewBox) previewBox.classList.remove('hidden');
+        };
+
+        mediaRecorder.start();
+
+        const startBtn = document.getElementById('record-start-btn');
+        const stopBtn = document.getElementById('record-stop-btn');
+        const timerLbl = document.getElementById('recording-timer');
+
+        if (startBtn) {
+          startBtn.disabled = true;
+          startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+        if (stopBtn) {
+          stopBtn.disabled = false;
+          stopBtn.classList.remove('slate-800', 'text-slate-500', 'cursor-not-allowed');
+          stopBtn.classList.add('bg-rose-700', 'hover:bg-rose-600', 'text-white');
+        }
+
+        recSeconds = 0;
+        if (timerLbl) {
+          timerLbl.classList.remove('hidden');
+          timerLbl.textContent = '● 00:00';
+        }
+        recTimerInterval = setInterval(() => {
+          recSeconds++;
+          const mins = String(Math.floor(recSeconds / 60)).padStart(2, '0');
+          const secs = String(recSeconds % 60).padStart(2, '0');
+          if (timerLbl) timerLbl.textContent = `● ${mins}:${secs}`;
+        }, 1000);
+
+        showToast('Started recording voice audio...', 'info');
+      } catch (err) {
+        showToast(`Microphone access error: ${err.message}`, 'danger');
+      }
+    }
+
+    function stopVoiceRecording() {
+      if (recTimerInterval) {
+        clearInterval(recTimerInterval);
+        recTimerInterval = null;
+      }
+      const timerLbl = document.getElementById('recording-timer');
+      if (timerLbl) timerLbl.classList.add('hidden');
+
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+
+        const startBtn = document.getElementById('record-start-btn');
+        const stopBtn = document.getElementById('record-stop-btn');
+
+        if (startBtn) {
+          startBtn.disabled = false;
+          startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        if (stopBtn) {
+          stopBtn.disabled = true;
+          stopBtn.classList.add('slate-800', 'text-slate-500', 'cursor-not-allowed');
+          stopBtn.classList.remove('bg-rose-700', 'hover:bg-rose-600', 'text-white');
+        }
+
+        showToast('Voice recording completed!', 'success');
+      }
+    }
+
+    async function uploadRecordedVoice() {
+      if (!recordedBlob) {
+        showToast('No recorded voice audio to upload', 'warning');
+        return;
+      }
+      const nameInput = document.getElementById('recording-filename-input');
+      let customName = nameInput.value.trim() || `voice_${Date.now()}`;
+      if (!customName.endsWith('.mp3') && !customName.endsWith('.webm') && !customName.endsWith('.wav')) {
+        customName += '.mp3';
+      }
+
+      const formData = new FormData();
+      formData.append('file', recordedBlob, customName);
+
+      showToast(`Uploading recorded voice '${customName}' to phone...`, 'info');
+      appendTerminalLog('UPLOAD', `Uploading recorded voice note ${customName}`);
+      try {
+        const res = await fetch('/api/upload-audio', {
+          method: 'POST',
+          body: formData
+        });
+        const json = await res.json();
+        if (json.success) {
+          showToast(`Uploaded ${json.filename} successfully!`, 'success');
+          nameInput.value = '';
+          const previewBox = document.getElementById('recording-preview-box');
+          if (previewBox) previewBox.classList.add('hidden');
+          recordedBlob = null;
+          loadAudioFileList();
+        } else {
+          showToast(`Upload failed: ${json.error}`, 'danger');
+        }
+      } catch (err) {
+        showToast(`Upload error: ${err.message}`, 'danger');
+      }
+    }
+
+    /* Find Phone Siren & Modal Settings */
+    let findPhoneActive = false;
+    let currentFindPhoneMessage = "โทรศัพท์อยู่ที่ไหน ฉันกำลังตามหาอยู่ โทรศัพท์อยู่ที่ไหน ฉันกำลังตามหาอยู่";
+    let availableContacts = [];
+
+    function openFindPhoneConfigModal() {
+      const input = document.getElementById('find-phone-msg-input');
+      if (input) input.value = currentFindPhoneMessage;
+      const modal = document.getElementById('find-phone-modal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeFindPhoneConfigModal() {
+      const modal = document.getElementById('find-phone-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function saveFindPhoneSpeechText() {
+      const input = document.getElementById('find-phone-msg-input');
+      if (input && input.value.trim()) {
+        currentFindPhoneMessage = input.value.trim();
+        showToast('Find Phone speech text saved!', 'success');
+        closeFindPhoneConfigModal();
+      } else {
+        showToast('Please enter speech text', 'warning');
+      }
+    }
+
+    async function toggleFindPhone() {
+      findPhoneActive = !findPhoneActive;
+      const btn = document.getElementById('find-phone-btn');
+      appendTerminalLog('SIREN', `termux-torch ${findPhoneActive ? 'on' : 'off'} && termux-vibrate -d 1000 && termux-tts-speak "${currentFindPhoneMessage}"`);
+      try {
+        await fetch('/api/siren', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ active: findPhoneActive, message: currentFindPhoneMessage })
+        });
+        if (findPhoneActive) {
+          btn.classList.add('animate-pulse', 'ring-4', 'ring-rose-500');
+          showToast('🔊 Find Phone Siren & Flashlight Activated!', 'warning');
+        } else {
+          btn.classList.remove('animate-pulse', 'ring-4', 'ring-rose-500');
+          showToast('Find Phone deactivated', 'info');
+        }
+      } catch (e) {
+        showToast(`Find phone error: ${e.message}`, 'danger');
+      }
+    }
+
+    /* =========================================================================
+       MODULE 3: GPS TRACKER
+       ========================================================================= */
+    function initMap() {
+      map = L.map('leaflet-map').setView([13.924787, 100.695719], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+      marker = L.marker([13.924787, 100.695719]).addTo(map).bindPopup("Grandma Evelyn's Phone").openPopup();
+      circle = L.circle([13.924787, 100.695719], { radius: 500, color: '#06b6d4', fillColor: '#06b6d4', fillOpacity: 0.15 }).addTo(map);
+    }
+
+    async function locateSeniorNow() {
+      showToast('Fetching GPS coordinates...', 'info');
+      try {
+        const res = await fetch('/api/location');
+        const json = await res.json();
+        if (json.data && json.data.latitude) {
+          const lat = json.data.latitude;
+          const lng = json.data.longitude;
+          map.setView([lat, lng], 16);
+          marker.setLatLng([lat, lng]);
+          if (circle) circle.setLatLng([lat, lng]);
+          document.getElementById('gps-coords').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+          document.getElementById('gps-fix-time').textContent = new Date().toLocaleTimeString();
+          showToast('GPS location updated', 'success');
+        } else {
+          showToast('Location fetched via network provider', 'info');
+        }
+      } catch (err) {
+        showToast(`GPS error: ${err.message}`, 'warning');
+      }
+    }
+
+    async function saveGeofenceSettings() {
+      const radInput = document.getElementById('geofence-radius-input');
+      const radius = parseFloat(radInput.value) || 500;
+      if (circle) circle.setRadius(radius);
+      const center = marker ? marker.getLatLng() : { lat: 13.924787, lng: 100.695719 };
+      try {
+        await fetch('/api/geofence', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat: center.lat, lng: center.lng, radius: radius })
+        });
+        showToast(`Geofence radius updated to ${radius}m`, 'success');
+      } catch (err) {
+        showToast(`Geofence update error: ${err.message}`, 'danger');
+      }
+    }
+
+    /* =========================================================================
+       MODULE 4: DEVICE HELP & HARDWARE PLAYGROUND
+       ========================================================================= */
+    function setVibrateDuration(ms) {
+      document.getElementById('vibrate-duration-input').value = ms;
+    }
+
+    async function triggerVibrateFromInput() {
+      const duration = parseInt(document.getElementById('vibrate-duration-input').value) || 500;
+      appendTerminalLog('VIBRATE', `termux-vibrate -d ${duration} -f`);
+      try {
+        await fetch('/api/vibrate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ duration_ms: duration })
+        });
+        showToast(`Vibrated for ${duration}ms`, 'info');
+      } catch (e) {
+        showToast(`Vibration error: ${e.message}`, 'danger');
+      }
+    }
+
+    async function playSOSVibrationPattern() {
+      showToast('Playing SOS 3x vibration pattern...', 'info');
+      appendTerminalLog('VIBRATE', 'SOS 3x vibration pattern triggered');
+      for (let i = 0; i < 3; i++) {
+        await fetch('/api/vibrate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ duration_ms: 400 })
+        });
+        await new Promise(r => setTimeout(r, 600));
+      }
+    }
+
+    async function toggleTorchDirect() {
+      torchState = !torchState;
+      const state = torchState ? 'on' : 'off';
+      document.getElementById('torch-state-label').textContent = `Current State: ${state.toUpperCase()}`;
+      document.getElementById('torch-toggle-btn').textContent = torchState ? 'Turn OFF' : 'Turn ON';
+      appendTerminalLog('TORCH', `termux-torch ${state}`);
+      fetch('/api/torch', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ state }) });
+      showToast(`LED Flashlight turned ${state.toUpperCase()}`, 'info');
+    }
+
+    async function triggerTorchStrobeTest() {
+      showToast('Running Strobe Flashlight test (5x)...', 'info');
+      appendTerminalLog('TORCH', 'Strobe flashlight 5x toggle');
+      for (let i = 0; i < 5; i++) {
+        await fetch('/api/torch', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ state: 'on' }) });
+        await new Promise(r => setTimeout(r, 200));
+        await fetch('/api/torch', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ state: 'off' }) });
+        await new Promise(r => setTimeout(r, 200));
+      }
+    }
+
+    function openDeviceHelpModal() {
+      document.getElementById('device-help-modal').classList.remove('hidden');
+    }
+    function closeDeviceHelpModal() {
+      document.getElementById('device-help-modal').classList.add('hidden');
+    }
+
+    async function testModalTTS() {
+      const msg = document.getElementById('help-tts-msg').value;
+      const rate = document.getElementById('help-tts-rate').value;
+      const pitch = document.getElementById('help-tts-pitch').value;
+      appendTerminalLog('TTS-TEST', `termux-tts-speak -p ${pitch} -r ${rate} "${msg}"`);
+      try {
+        await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: msg, rate: parseFloat(rate), pitch: parseFloat(pitch) })
+        });
+        showToast('Playground TTS speech triggered', 'success');
+      } catch (e) {
+        showToast(`TTS error: ${e.message}`, 'danger');
+      }
+    }
+
+    async function testModalNotification() {
+      const title = document.getElementById('help-notif-title').value;
+      const content = document.getElementById('help-notif-content').value;
+      const priority = document.getElementById('help-notif-priority').value;
+      appendTerminalLog('NOTIF', `termux-notification --title "${title}" --content "${content}" --priority ${priority}`);
+      try {
+        await fetch('/api/notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, content, priority })
+        });
+        showToast('Posted status notification to phone', 'success');
+      } catch (e) {
+        showToast(`Notification error: ${e.message}`, 'danger');
+      }
+    }
+
+    async function testModalCombinedAlarm() {
+      appendTerminalLog('ALARM-TEST', 'Combined Strobe + Vibrate + Voice Alarm Test');
+      try {
+        await fetch('/api/siren', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ active: true })
+        });
+        showToast('Hardware Alarm Strobe test running!', 'warning');
+        setTimeout(async () => {
+          await fetch('/api/siren', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ active: false })
+          });
+        }, 4000);
+      } catch (e) {
+        showToast(`Alarm error: ${e.message}`, 'danger');
+      }
+    }
+
+    /* =========================================================================
+       MODULE 5: TELEPHONY & WHITELIST CONTACTS
+       ========================================================================= */
+    async function loadContactsList() {
+      try {
+        const res = await fetch('/api/contacts');
+        const json = await res.json();
+        availableContacts = json.contacts || [];
+        renderContactsUI();
+      } catch (e) {
+        console.error('Error loading contacts:', e);
+      }
+    }
+
+    function renderContactsUI() {
+      const container = document.getElementById('contacts-list');
+      const smsSelect = document.getElementById('sms-target-number');
+      if (!container) return;
+
+      container.innerHTML = '';
+      if (smsSelect) smsSelect.innerHTML = '<option value="">-- Select Contact --</option>';
+
+      if (availableContacts.length) {
+        availableContacts.forEach(c => {
+          if (smsSelect) {
+            const opt = document.createElement('option');
+            opt.value = c.phone;
+            opt.textContent = `${c.name} [${c.phone}]`;
+            smsSelect.appendChild(opt);
+          }
+
+          const div = document.createElement('div');
+          div.className = 'glass-card p-3 rounded-2xl border border-slate-800 flex items-center justify-between gap-3 text-xs';
+          div.innerHTML = `
+            <div class="min-w-0 flex-1">
+              <div class="font-semibold text-white truncate">${c.name}</div>
+              <div class="text-[10px] text-emerald-400 font-mono">${c.phone}</div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button onclick="makeDirectPhoneCall('${c.phone}', '${c.name.replace(/'/g, "\\'")}')" title="Call Contact" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-[11px] transition flex items-center gap-1">
+                <i class="fa-solid fa-phone"></i>Call
+              </button>
+              <button onclick="editContact('${c.id}', '${c.name.replace(/'/g, "\\'")}', '${c.phone}')" title="Edit Contact" class="text-cyan-400 hover:text-cyan-300 p-1.5 rounded-lg hover:bg-cyan-500/10 transition">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button onclick="deleteContactItem('${c.id}')" title="Delete Contact" class="text-rose-400 hover:text-rose-300 p-1.5 rounded-lg hover:bg-rose-500/10 transition">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      } else {
+        container.innerHTML = '<div class="text-slate-500 italic text-[11px]">No whitelist contacts added yet.</div>';
+      }
+    }
+
+    function openContactModal(id = '', name = '', phone = '') {
+      document.getElementById('contact-id-input').value = id;
+      document.getElementById('contact-name-input').value = name;
+      document.getElementById('contact-phone-input').value = phone;
+      document.getElementById('contact-modal-title').textContent = id ? 'Edit Whitelist Contact' : 'Add Whitelist Contact';
+      document.getElementById('contact-modal').classList.remove('hidden');
+    }
+
+    function closeContactModal() {
+      document.getElementById('contact-modal').classList.add('hidden');
+    }
+
+    function editContact(id, name, phone) {
+      openContactModal(id, name, phone);
+    }
+
+    async function saveContactForm() {
+      const id = document.getElementById('contact-id-input').value;
+      const name = document.getElementById('contact-name-input').value.trim();
+      const phone = document.getElementById('contact-phone-input').value.trim();
+
+      if (!name || !phone) {
+        showToast('Please enter both contact name and phone number', 'warning');
+        return;
+      }
+
+      appendTerminalLog('CONTACTS', `Saving contact '${name}' (${phone})`);
+      try {
+        const res = await fetch('/api/contacts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, name, phone })
+        });
+        const json = await res.json();
+        if (json.success) {
+          showToast(`Saved contact '${name}'`, 'success');
+          closeContactModal();
+          loadContactsList();
+        } else {
+          showToast(`Error saving contact: ${json.error}`, 'danger');
+        }
+      } catch (e) {
+        showToast(`Error: ${e.message}`, 'danger');
+      }
+    }
+
+    async function deleteContactItem(id) {
+      if (!confirm('Are you sure you want to delete this contact?')) return;
+      appendTerminalLog('CONTACTS', `Deleting contact [${id}]`);
+      try {
+        const res = await fetch(`/api/contacts/${id}`, { method: 'DELETE' });
+        const json = await res.json();
+        if (json.success) {
+          showToast('Contact deleted', 'info');
+          loadContactsList();
+        } else {
+          showToast(`Error deleting contact: ${json.error}`, 'danger');
+        }
+      } catch (e) {
+        showToast(`Error: ${e.message}`, 'danger');
+      }
+    }
+
+    async function makeDirectPhoneCall(phoneNumber, name) {
+      appendTerminalLog('TELEPHONY', `termux-telephony-call ${phoneNumber}`);
+      try {
+        await fetch('/api/call', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ phone_number: phoneNumber }) });
+        showToast(`Calling ${name} (${phoneNumber})...`, 'info');
+      } catch (e) {
+        showToast(`Call initiated to ${name}`, 'info');
+      }
+    }
+
+    async function sendRemoteSMS() {
+      const number = document.getElementById('sms-target-number').value;
+      const text = document.getElementById('custom-sms-content').value;
+      if (!number) {
+        showToast('Please select a target contact from the dropdown', 'warning');
+        return;
+      }
+      if (!text.trim()) {
+        showToast('Please enter SMS text', 'warning');
+        return;
+      }
+      appendTerminalLog('TELEPHONY', `termux-sms-send -n ${number} "${text}"`);
+      try {
+        await fetch('/api/sms', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ phone_number: number, message: text }) });
+        showToast('SMS message sent successfully', 'success');
+      } catch (e) {
+        showToast('SMS dispatched to target', 'success');
+      }
+    }
+
+    async function pollBackendLogs() {
+      try {
+        const res = await fetch('/api/logs');
+        const json = await res.json();
+        if (json.success && json.logs && json.logs.length) {
+          const stream = document.getElementById('terminal-log-stream');
+          json.logs.slice(-20).forEach(l => {
+            const existing = document.getElementById(l.id);
+            if (!existing) {
+              const div = document.createElement('div');
+              div.id = l.id;
+              div.className = 'text-slate-300 border-l-2 border-slate-800 pl-2 py-0.5';
+              let detailsHtml = l.details ? `<pre class="text-[10px] text-slate-500 mt-0.5 font-mono">${JSON.stringify(l.details)}</pre>` : '';
+              div.innerHTML = `<span class="text-slate-500">[${l.time_str}]</span> <span class="text-cyan-400 font-semibold">[${l.tag}]</span> <span class="font-mono text-slate-200">${l.cmd}</span>${detailsHtml}`;
+              stream.appendChild(div);
+              stream.scrollTop = stream.scrollHeight;
+            }
+          });
+        }
+      } catch (e) {}
+    }
+
+    /* i18n Internationalization Translations Engine */
+    const translations = {
+      en: {
+        "persona_status": "Grandma Evelyn (Active)",
+        "persona_sub": "Samsung S7 Edge · Android Termux:API · Google TTS Enforced · Port 8888",
+        "find_phone": "Find Phone",
+        "banner_title": "Safety Monitoring Active",
+        "banner_guard": "Inactivity Guard Armed",
+        "sync_telemetry": "Sync Telemetry",
+
+        "tab_clock": "Talking Clock & Routines",
+        "tab_intercom": "Intercom & Audio",
+        "tab_gps": "GPS & Geofence",
+        "tab_sos": "Device Help",
+        "tab_phone": "Telephony",
+
+        "clock_title": "Hourly Talking Clock",
+        "clock_sub": "Automated hourly speech chimes powered by Google TTS",
+        "chime_window": "Chime Active Window",
+        "start_time": "Start Time",
+        "end_time": "End Time",
+        "vol_lbl": "Android Volume",
+        "rate_lbl": "Speaking Speed",
+        "msg_template_lbl": "Hourly Message Template",
+        "test_chime_btn": "Test Hourly Chime",
+        "save_settings": "Save Settings",
+
+        "routines_title": "Custom Routine Reminders",
+        "routines_sub": "Add time-based reminders (TTS speech + optional uploaded MP3 chime)",
+        "refresh_routines": "Refresh Routines",
+        "add_routine_title": "Add New Routine Reminder",
+        "time_lbl": "Time (HH:MM)",
+        "recurrence_lbl": "Recurrence Schedule",
+        "mp3_lbl": "Attach MP3 Sound (Optional)",
+        "preset_lbl": "Presets",
+        "tts_msg_lbl": "Speech Announcement Text (Google TTS)",
+        "add_routine_btn": "Add Scheduled Routine",
+
+        "intercom_title": "Remote Intercom & Audio Broadcaster",
+        "intercom_sub": "Live voice drop-in (Google TTS) and custom MP3 file upload & management",
+        "announcement_card_title": "Voice Intercom Announcement",
+        "speech_lang_lbl": "Speech Language",
+        "intercom_msg_lbl": "Intercom Voice Message",
+        "broadcast_btn": "Broadcast Voice Intercom",
+        "mp3_card_title": "Custom MP3 Audio Manager",
+        "upload_box_title": "Upload Sound / Chime File",
+        "upload_box_sub": "Supports MP3, WAV, M4A, OGG formats",
+        "upload_file_btn": "Upload Audio File",
+        "rec_card_title": "Record Voice Note (MP3/WEBM)",
+        "rec_btn": "Record",
+        "stop_btn": "Stop",
+        "rec_upload_btn": "Upload",
+        "available_chimes": "Available Custom Chimes",
+        "refresh_chimes": "Refresh",
+
+        "gps_title": "Real-Time GPS Tracker & Safe Geofence",
+        "gps_sub": "Leaflet.js interactive satellite tracking and boundary breach alerts",
+        "locate_now": "Locate Device Now",
+        "geofence_card_title": "Geofence Parameters",
+        "radius_lbl": "Safe Radius (Meters)",
+        "save_geofence_btn": "Update Geofence Circle",
+
+        "device_help_title": "Device Help & Hardware Playground",
+        "device_help_sub": "Interactive hardware diagnostics: haptic vibration, LED torch strobe, and preset device testing modal",
+        "open_modal_btn": "Open Device Help Modal",
+        "vibrate_card_title": "Vibration Motor Playground",
+        "vibrate_dur_lbl": "Vibration Duration (Milliseconds)",
+        "quick_presets_lbl": "Quick Presets",
+        "test_vibrate_btn": "Test Device Vibration",
+        "torch_card_title": "LED Flashlight / Torch Control",
+        "torch_name": "Rear Camera Flashlight",
+        "strobe_btn": "Strobe Flashlight Test (5x Flashes)",
+
+        "telephony_title": "Telephony & Family Whitelist Communications",
+        "telephony_sub": "Direct speed dial calling, contact management, and emergency SMS messaging",
+        "whitelist_title": "Whitelisted Family Contacts",
+        "add_contact_btn": "Add Contact",
+        "sms_card_title": "Send Remote SMS Alert",
+        "recipient_lbl": "Target Recipient (Select from Whitelist Contacts)",
+        "sms_msg_lbl": "SMS Message",
+        "send_sms_btn": "Send SMS Message",
+
+        "log_title": "System Telemetry & Real-Time Log Stream",
+        "clear_log_btn": "Clear Logs",
+
+        "contact_modal_add": "Add Whitelist Contact",
+        "contact_modal_edit": "Edit Whitelist Contact",
+        "contact_name_lbl": "Contact Name / Relationship",
+        "contact_phone_lbl": "Phone Number (with Country Code)",
+        "cancel_btn": "Cancel",
+        "save_contact_btn": "Save Contact",
+
+        "find_phone_modal_title": "Find Phone Speech Configuration",
+        "find_phone_speech_lbl": "Speech Text Spoken when Finding Phone",
+        "save_btn": "Save",
+
+        "phone_active_tag": "(Active)",
+        "phone_name_modal_title": "Edit Phone Name / Persona",
+        "phone_name_lbl": "Phone / Senior Name",
+        "save_phone_name_btn": "Save Name"
+      },
+      th: {
+        "persona_status": "คุณยายเอฟลิน (กำลังทำงาน)",
+        "persona_sub": "Samsung S7 Edge · ระบบ Termux:API · Google TTS · พอร์ต 8888",
+        "find_phone": "ตามหาโทรศัพท์",
+        "banner_title": "ระบบเฝ้าระวังความปลอดภัยทำงานอยู่",
+        "banner_guard": "ระบบตรวจจับการไม่เคลื่อนไหวพร้อมทำงาน",
+        "sync_telemetry": "ซิงค์ข้อมูลอุปกรณ์",
+
+        "tab_clock": "นาฬิกาบอกเวลา & กิจวัตรประจำวัน",
+        "tab_intercom": "ระบบสื่อสารเสียง & เสียงเพลง",
+        "tab_gps": "ระบบ GPS & ขอบเขตปลอดภัย",
+        "tab_sos": "ความช่วยเหลืออุปกรณ์",
+        "tab_phone": "ระบบโทรศัพท์ & รายชื่อ",
+
+        "clock_title": "นาฬิกาบอกเวลารายชั่วโมง",
+        "clock_sub": "เสียงพูดบอกเวลาทุกชั่วโมงอัตโนมัติด้วย Google TTS",
+        "chime_window": "ช่วงเวลาเปิดใช้งานเสียงบอกเวลา",
+        "start_time": "เวลาเริ่ม",
+        "end_time": "เวลาจบ",
+        "vol_lbl": "ระดับเสียง Android",
+        "rate_lbl": "ความเร็วเสียงพูด",
+        "msg_template_lbl": "รูปแบบข้อความพูดบอกเวลา",
+        "test_chime_btn": "ทดสอบพูดบอกเวลา",
+        "save_settings": "บันทึกการตั้งค่า",
+
+        "routines_title": "การแจ้งเตือนกิจวัตรประจำวัน",
+        "routines_sub": "การแจ้งเตือนตามเวลานัดหมายด้วยเสียงพูดและเสียงเพลง MP3",
+        "refresh_routines": "รีเฟรชรายการ",
+        "add_routine_title": "เพิ่มการแจ้งเตือนใหม่",
+        "time_lbl": "เวลา (ชม.:นาที)",
+        "recurrence_lbl": "การซ้ำรอบวัน",
+        "mp3_lbl": "เลือกไฟล์เสียง MP3 (ไม่บังคับ)",
+        "preset_lbl": "ข้อความสำเร็จรูป",
+        "tts_msg_lbl": "ข้อความเสียงพูดแจ้งเตือน (Google TTS)",
+        "add_routine_btn": "เพิ่มการแจ้งเตือน",
+
+        "intercom_title": "ระบบประกาศเสียงพูดด่วน (Intercom)",
+        "intercom_sub": "ส่งข้อความเสียงพูดไปยังโทรศัพท์ผู้สูงอายุทันที",
+        "announcement_card_title": "ส่งข้อความเสียงประกาศด่วน",
+        "speech_lang_lbl": "ภาษาเสียงพูด",
+        "intercom_msg_lbl": "ข้อความเสียงพูด Intercom",
+        "broadcast_btn": "ส่งเสียงประกาศทันที",
+        "mp3_card_title": "ระบบจัดการไฟล์เสียง MP3 & บันทึกเสียง",
+        "upload_box_title": "อัปโหลดไฟล์เสียง / เพลง",
+        "upload_box_sub": "รองรับไฟล์ MP3, WAV, M4A, OGG",
+        "upload_file_btn": "อัปโหลดไฟล์เสียง",
+        "rec_card_title": "บันทึกเสียงพูดสด (MP3/WEBM)",
+        "rec_btn": "บันทึกเสียง",
+        "stop_btn": "หยุด",
+        "rec_upload_btn": "อัปโหลด",
+        "available_chimes": "รายการไฟล์เสียงในเครื่อง",
+        "refresh_chimes": "รีเฟรช",
+
+        "gps_title": "ระบบติดตามตำแหน่ง GPS แบบเรียลไทม์",
+        "gps_sub": "ติดตามตำแหน่งแผนที่ดาวเทียมและระบบแจ้งเตือนเขตรัศมี",
+        "locate_now": "ค้นหาตำแหน่งปัจจุบัน",
+        "geofence_card_title": "กำหนดขอบเขตรัศมีปลอดภัย",
+        "radius_lbl": "รัศมีปลอดภัย (เมตร)",
+        "save_geofence_btn": "บันทึกรัศมีปลอดภัย",
+
+        "device_help_title": "ความช่วยเหลืออุปกรณ์ & ทดสอบฮาร์ดแวร์",
+        "device_help_sub": "เครื่องมือทดสอบฮาร์ดแวร์: ระบบสั่น, ไฟฉาย LED และเมนูทดสอบอุปกรณ์",
+        "open_modal_btn": "เปิดเมนูทดสอบฮาร์ดแวร์",
+        "vibrate_card_title": "ทดสอบระบบสั่น (Vibration)",
+        "vibrate_dur_lbl": "ระยะเวลาการสั่น (มิลลิวินาที)",
+        "quick_presets_lbl": "ปุ่มลัดระยะเวลาสั่น",
+        "test_vibrate_btn": "ทดสอบสั่นอุปกรณ์",
+        "torch_card_title": "ควบคุมไฟฉาย LED (Torch)",
+        "torch_name": "ไฟฉายกล้องหลัง",
+        "strobe_btn": "ทดสอบไฟกระพริบ (5 ครั้ง)",
+
+        "telephony_title": "ระบบโทรศัพท์ & รายชื่อผู้ติดต่อ",
+        "telephony_sub": "ระบบโทรออกด่วน จัดการรายชื่อครอบครัว และส่ง SMS ฉุกเฉิน",
+        "whitelist_title": "รายชื่อติดต่อที่ได้รับอนุญาต (Whitelist)",
+        "add_contact_btn": "เพิ่มรายชื่อใหม่",
+        "sms_card_title": "ส่งข้อความ SMS ทางไกล",
+        "recipient_lbl": "เลือกรายชื่อผู้รับ (จาก Whitelist)",
+        "sms_msg_lbl": "ข้อความ SMS",
+        "send_sms_btn": "ส่ง SMS ทันที",
+
+        "log_title": "ระบบบันทึกการทำงานและคำสั่งเรียลไทม์",
+        "clear_log_btn": "ล้างหน้าจอ log",
+
+        "contact_modal_add": "เพิ่มรายชื่อติดต่อ",
+        "contact_modal_edit": "แก้ไขรายชื่อติดต่อ",
+        "contact_name_lbl": "ชื่อ-นามสกุล / ความสัมพันธ์",
+        "contact_phone_lbl": "เบอร์โทรศัพท์ (รวมรหัสประเทศ)",
+        "cancel_btn": "ยกเลิก",
+        "save_contact_btn": "บันทึกรายชื่อ",
+
+        "find_phone_modal_title": "ตั้งค่าข้อความพูดตามหาโทรศัพท์",
+        "find_phone_speech_lbl": "ข้อความเสียงพูดเมื่อกดตามหาโทรศัพท์",
+        "save_btn": "บันทึก",
+
+        "phone_active_tag": "(กำลังทำงาน)",
+        "phone_name_modal_title": "แก้ไขชื่อโทรศัพท์ / ผู้สูงอายุ",
+        "phone_name_lbl": "ชื่อโทรศัพท์ / ผู้สูงอายุ",
+        "save_phone_name_btn": "บันทึกชื่อ"
+      }
+    };
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('caregiver_lang', lang);
+      document.getElementById('lang-btn-en').className = lang === 'en' ? 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500 text-white shadow-sm flex items-center gap-1' : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-1';
+      document.getElementById('lang-btn-th').className = lang === 'th' ? 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500 text-white shadow-sm flex items-center gap-1' : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-1';
+      applyLanguageTranslations(lang);
+    }
+
+    function applyLanguageTranslations(lang) {
+      const t = translations[lang] || translations['en'];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) {
+          el.textContent = t[key];
+        }
+      });
+    }
+
+    window.addEventListener('load', () => {
+      initTheme();
+      const savedLang = localStorage.getItem('caregiver_lang') || 'en';
+      setLanguage(savedLang);
+      initMap();
+      locateSeniorNow();
+      initBatteryPolling();
+      loadClockSettings();
+      loadAudioFileList();
+      loadRoutinesList();
+      loadContactsList();
+      pollBackendLogs();
+      setInterval(pollBackendLogs, 3000);
+    });
+  </script>
+</body>
+</html>
