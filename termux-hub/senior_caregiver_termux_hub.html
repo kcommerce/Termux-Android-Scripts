@@ -526,65 +526,69 @@
             </div>
             <div>
               <h3 data-i18n="intercom_title" class="font-display font-bold text-lg text-white">Remote Intercom & Audio Broadcaster</h3>
-              <p data-i18n="intercom_sub" class="text-xs text-slate-400">Live voice drop-in (Google TTS) and custom MP3 file upload & management</p>
+              <p data-i18n="intercom_sub" class="text-xs text-slate-400">Live voice drop-in (Google TTS / WebRTC) and custom MP3 file upload & management</p>
             </div>
-          </div>
-        <!-- WebRTC Live Intercom Walkie-Talkie Card -->
-        <div class="glass-card p-6 rounded-2xl border border-rose-500/30 bg-gradient-to-br from-rose-950/20 via-slate-900/80 to-slate-900 space-y-4 text-xs shadow-xl relative overflow-hidden">
-          <div class="flex items-center justify-between flex-wrap gap-2">
-            <div class="flex items-center gap-2.5">
-              <div class="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center">
-                <i class="fa-solid fa-walkie-talkie text-rose-400 text-base"></i>
-              </div>
-              <div>
-                <h4 data-i18n="webrtc_card_title" class="font-semibold text-slate-100 text-sm flex items-center gap-2">
-                  WebRTC Live Voice Intercom (One-Way Talkie)
-                </h4>
-                <p data-i18n="webrtc_card_sub" class="text-[11px] text-slate-400">Press button to stream your live voice directly to the phone speaker (HTTPS)</p>
-              </div>
-            </div>
-            <div id="webrtc-protocol-badge" class="px-2.5 py-1 rounded-full text-[11px] font-medium border flex items-center gap-1.5 bg-slate-900 border-slate-700 text-slate-400">
-              <!-- Dynamically populated by checkWebRTCProtocolSupport() -->
-            </div>
-          </div>
-
-          <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-slate-950/70 border border-slate-800/80">
-            <!-- Left: Mic Status & Live Audio Meter -->
-            <div class="space-y-1 text-center sm:text-left">
-              <div id="webrtc-status-text" data-i18n="webrtc_status_idle" class="font-medium text-slate-300 text-xs flex items-center justify-center sm:justify-start gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span> Ready to talk
-              </div>
-              <div id="webrtc-timer-display" class="font-mono text-sm text-rose-400 font-bold hidden">● 00:00</div>
-              <p data-i18n="webrtc_hint" class="text-[11px] text-slate-500">One-way transmission from caregiver browser to senior phone speaker</p>
-            </div>
-
-            <!-- Right: Big Push-to-Talk Button -->
-            <button id="webrtc-talk-btn" onclick="toggleWebRTCTalk()" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 via-rose-600 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white font-bold text-sm flex items-center justify-center gap-3 shadow-lg shadow-rose-500/25 transition-all transform active:scale-95">
-              <i id="webrtc-btn-icon" class="fa-solid fa-microphone text-lg"></i>
-              <span id="webrtc-btn-text" data-i18n="webrtc_start_talk">Push to Talk</span>
-            </button>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-          <!-- Voice Announcement -->
+        <div class="space-y-6 flex flex-col text-xs">
+          <!-- 1. WebRTC Live Intercom Walkie-Talkie Card (Top) -->
+          <div class="glass-card p-6 rounded-2xl border border-rose-500/30 bg-gradient-to-br from-rose-950/20 via-slate-900/80 to-slate-900 space-y-4 text-xs shadow-xl relative overflow-hidden">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center">
+                  <i class="fa-solid fa-walkie-talkie text-rose-400 text-base"></i>
+                </div>
+                <div>
+                  <h4 data-i18n="webrtc_card_title" class="font-semibold text-slate-100 text-sm flex items-center gap-2">
+                    WebRTC Live Voice Intercom (One-Way Talkie)
+                  </h4>
+                  <p data-i18n="webrtc_card_sub" class="text-[11px] text-slate-400">Press button to stream your live voice directly to the phone speaker (HTTPS)</p>
+                </div>
+              </div>
+              <div id="webrtc-protocol-badge" class="px-2.5 py-1 rounded-full text-[11px] font-medium border flex items-center gap-1.5 bg-slate-900 border-slate-700 text-slate-400">
+                <!-- Dynamically populated by checkWebRTCProtocolSupport() -->
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-slate-950/70 border border-slate-800/80">
+              <!-- Left: Mic Status & Live Audio Meter -->
+              <div class="space-y-1 text-center sm:text-left">
+                <div id="webrtc-status-text" data-i18n="webrtc_status_idle" class="font-medium text-slate-300 text-xs flex items-center justify-center sm:justify-start gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span> Ready to talk
+                </div>
+                <div id="webrtc-timer-display" class="font-mono text-sm text-rose-400 font-bold hidden">● 00:00</div>
+                <p data-i18n="webrtc_hint" class="text-[11px] text-slate-500">One-way transmission from caregiver browser to senior phone speaker</p>
+              </div>
+
+              <!-- Right: Big Push-to-Talk Button -->
+              <button id="webrtc-talk-btn" onclick="toggleWebRTCTalk()" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 via-rose-600 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white font-bold text-sm flex items-center justify-center gap-3 shadow-lg shadow-rose-500/25 transition-all transform active:scale-95">
+                <i id="webrtc-btn-icon" class="fa-solid fa-microphone text-lg"></i>
+                <span id="webrtc-btn-text" data-i18n="webrtc_start_talk">Push to Talk</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Voice Intercom Announcement Card (Middle) -->
           <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-4">
             <h4 class="font-semibold text-slate-200 flex items-center gap-2">
               <i class="fa-solid fa-tower-broadcast text-rose-400"></i>
               <span data-i18n="announcement_card_title">Voice Intercom Announcement</span>
             </h4>
 
-            <div>
-              <label data-i18n="speech_lang_lbl" class="block text-slate-400 mb-1">Speech Language</label>
-              <select id="tts-lang-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-rose-500">
-                <option value="th_TH">Thai (th_TH)</option>
-                <option value="en_US">English (en_US)</option>
-              </select>
-            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label data-i18n="speech_lang_lbl" class="block text-slate-400 mb-1">Speech Language</label>
+                <select id="tts-lang-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-rose-500">
+                  <option value="th_TH">Thai (th_TH)</option>
+                  <option value="en_US">English (en_US)</option>
+                </select>
+              </div>
 
-            <div>
-              <label data-i18n="intercom_msg_lbl" class="block text-slate-300 font-semibold mb-1">Intercom Voice Message</label>
-              <textarea id="broadcast-text" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-rose-500" placeholder="คุณย่าครับ อีก 15 นาทีผมจะเข้าไปหานะครับ"></textarea>
+              <div>
+                <label data-i18n="intercom_msg_lbl" class="block text-slate-300 font-semibold mb-1">Intercom Voice Message</label>
+                <textarea id="broadcast-text" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-rose-500" placeholder="คุณย่าครับ อีก 15 นาทีผมจะเข้าไปหานะครับ"></textarea>
+              </div>
             </div>
 
             <button onclick="broadcastVoiceMessage()" class="w-full py-3 rounded-xl bg-gradient-to-r from-rose-500 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-rose-500/20 transition">
@@ -593,66 +597,71 @@
             </button>
           </div>
 
-          <!-- MP3 Audio File Upload, Playback & Deletion -->
-          <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-4 flex flex-col justify-between">
-            <div>
-              <h4 class="font-semibold text-slate-200 flex items-center gap-2 mb-3">
-                <i class="fa-solid fa-file-audio text-cyan-400"></i>
-                <span data-i18n="mp3_card_title">Custom MP3 Audio Manager</span>
-              </h4>
+          <!-- 3. Custom MP3 Audio Manager Card (Bottom) -->
+          <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-4">
+            <h4 class="font-semibold text-slate-200 flex items-center gap-2 mb-1">
+              <i class="fa-solid fa-file-audio text-cyan-400"></i>
+              <span data-i18n="mp3_card_title">Custom MP3 Audio Manager</span>
+            </h4>
 
-              <div class="border-2 border-dashed border-slate-700 rounded-2xl p-4 text-center bg-slate-900/60">
-                <i class="fa-solid fa-cloud-arrow-up text-cyan-400 text-2xl mb-2"></i>
-                <span data-i18n="upload_box_title" class="block text-slate-300 font-medium mb-1">Upload Sound / Chime File</span>
-                <span data-i18n="upload_box_sub" class="block text-[11px] text-slate-400 mb-3">Supports MP3, WAV, M4A, OGG formats</span>
-                <input type="file" id="audio-file-input" accept="audio/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 hover:file:bg-cyan-500/30">
-              </div>
-
-              <button onclick="uploadAudioFile()" class="w-full mt-3 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold flex items-center justify-center gap-2 transition">
-                <i class="fa-solid fa-upload"></i>
-                <span data-i18n="upload_file_btn">Upload Audio File</span>
-              </button>
-
-              <!-- Browser Microphone Voice Audio Recorder -->
-              <div class="mt-4 border border-slate-800 rounded-2xl p-3.5 bg-slate-900/80 space-y-3">
-                <div class="flex items-center justify-between">
-                  <span class="font-semibold text-slate-200 text-xs flex items-center gap-1.5">
-                    <i class="fa-solid fa-microphone text-rose-400"></i>
-                    <span data-i18n="rec_card_title">Record Voice Note (MP3/WEBM)</span>
-                  </span>
-                  <span id="recording-timer" class="font-mono text-[11px] text-rose-400 font-bold hidden animate-pulse">● 00:00</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Upload & Voice Note Recorder -->
+              <div class="space-y-4">
+                <div class="border-2 border-dashed border-slate-700 rounded-2xl p-4 text-center bg-slate-900/60">
+                  <i class="fa-solid fa-cloud-arrow-up text-cyan-400 text-2xl mb-2"></i>
+                  <span data-i18n="upload_box_title" class="block text-slate-300 font-medium mb-1">Upload Sound / Chime File</span>
+                  <span data-i18n="upload_box_sub" class="block text-[11px] text-slate-400 mb-3">Supports MP3, WAV, M4A, OGG formats</span>
+                  <input type="file" id="audio-file-input" accept="audio/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 hover:file:bg-cyan-500/30">
                 </div>
 
-                <div class="flex items-center gap-2">
-                  <button id="record-start-btn" onclick="startVoiceRecording()" class="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition">
-                    <i class="fa-solid fa-microphone"></i> <span data-i18n="rec_btn">Record</span>
-                  </button>
-                  <button id="record-stop-btn" onclick="stopVoiceRecording()" disabled class="flex-1 py-2 rounded-xl bg-slate-800 text-slate-500 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-not-allowed transition">
-                    <i class="fa-solid fa-stop"></i> <span data-i18n="stop_btn">Stop</span>
-                  </button>
-                </div>
+                <button onclick="uploadAudioFile()" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold flex items-center justify-center gap-2 transition">
+                  <i class="fa-solid fa-upload"></i>
+                  <span data-i18n="upload_file_btn">Upload Audio File</span>
+                </button>
 
-                <div id="recording-preview-box" class="space-y-2 hidden pt-1">
-                  <audio id="recording-audio-preview" controls class="w-full h-8 rounded-lg bg-slate-950"></audio>
+                <!-- Browser Microphone Voice Audio Recorder -->
+                <div class="border border-slate-800 rounded-2xl p-3.5 bg-slate-900/80 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="font-semibold text-slate-200 text-xs flex items-center gap-1.5">
+                      <i class="fa-solid fa-microphone text-rose-400"></i>
+                      <span data-i18n="rec_card_title">Record Voice Note (MP3/WEBM)</span>
+                    </span>
+                    <span id="recording-timer" class="font-mono text-[11px] text-rose-400 font-bold hidden animate-pulse">● 00:00</span>
+                  </div>
+
                   <div class="flex items-center gap-2">
-                    <input type="text" id="recording-filename-input" placeholder="Filename (e.g. voice_note_1)" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-rose-500 font-sans">
-                    <button onclick="uploadRecordedVoice()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1 transition shrink-0">
-                      <i class="fa-solid fa-upload"></i> <span data-i18n="rec_upload_btn">Upload</span>
+                    <button id="record-start-btn" onclick="startVoiceRecording()" class="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                      <i class="fa-solid fa-microphone"></i> <span data-i18n="rec_btn">Record</span>
                     </button>
+                    <button id="record-stop-btn" onclick="stopVoiceRecording()" disabled class="flex-1 py-2 rounded-xl bg-slate-800 text-slate-500 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-not-allowed transition">
+                      <i class="fa-solid fa-stop"></i> <span data-i18n="stop_btn">Stop</span>
+                    </button>
+                  </div>
+
+                  <div id="recording-preview-box" class="space-y-2 hidden pt-1">
+                    <audio id="recording-audio-preview" controls class="w-full h-8 rounded-lg bg-slate-950"></audio>
+                    <div class="flex items-center gap-2">
+                      <input type="text" id="recording-filename-input" placeholder="Filename (e.g. voice_note_1)" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-rose-500 font-sans">
+                      <button onclick="uploadRecordedVoice()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold flex items-center gap-1 transition shrink-0">
+                        <i class="fa-solid fa-upload"></i> <span data-i18n="rec_upload_btn">Upload</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Uploaded Audio Files List (with Play and Delete Buttons) -->
-            <div>
-              <div class="flex justify-between items-center mb-2">
-                <span data-i18n="available_chimes" class="font-semibold text-slate-300">Available Custom Chimes</span>
-                <button onclick="loadAudioFileList()" class="text-[11px] text-cyan-400 hover:underline"><i class="fa-solid fa-rotate"></i> <span data-i18n="refresh_chimes">Refresh</span></button>
+              <!-- Uploaded Audio Files List -->
+              <div class="flex flex-col justify-between space-y-3">
+                <div class="flex justify-between items-center">
+                  <span data-i18n="available_chimes" class="font-semibold text-slate-300">Available Custom Chimes</span>
+                  <button onclick="loadAudioFileList()" class="text-[11px] text-cyan-400 hover:underline"><i class="fa-solid fa-rotate"></i> <span data-i18n="refresh_chimes">Refresh</span></button>
+                </div>
+                <div id="audio-files-list" class="space-y-1.5 min-h-[160px] max-h-52 overflow-y-auto pr-1 text-slate-300 bg-slate-950/50 p-3 rounded-2xl border border-slate-800/80">
+                  <div class="text-slate-500 italic text-[11px]">No custom audio files uploaded yet.</div>
+                </div>
               </div>
-              <div id="audio-files-list" class="space-y-1.5 max-h-36 overflow-y-auto pr-1 text-slate-300">
-                <div class="text-slate-500 italic text-[11px]">No custom audio files uploaded yet.</div>
-              </div>
+            </div>
+          </div>
             </div>
           </div>
         </div>
