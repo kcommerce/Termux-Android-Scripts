@@ -104,7 +104,28 @@ def log_system_event(tag: str, cmd_str: str, returncode: int = 0, stdout: str = 
     if len(system_logs) > 100:
         system_logs.pop(0)
 
-# Default per-command timeouts (in seconds) to prevent 12s process hangs
+def cleanup_stale_termux_api_processes():
+    """Finds and kills lingering termux-api processes stuck in socket read()."""
+    try:
+        proc = subprocess.run(["ps", "aux"], capture_output=True, text=True, timeout=3)
+        if proc.returncode == 0 and proc.stdout:
+            killed_count = 0
+            for line in proc.stdout.splitlines():
+                if "termux-api" in line and "python" not in line and "grep" not in line:
+                    parts = line.split()
+                    if len(parts) >= 2 and parts[1].isdigit():
+                        pid = int(parts[1])
+                        try:
+                            os.kill(pid, signal.SIGKILL)
+                            killed_count += 1
+                        except OSError:
+                            pass
+            if killed_count > 0:
+                logger.info(f"Cleaned up {killed_count} lingering termux-api processes.")
+    except Exception as e:
+        logger.error(f"Error during termux-api process cleanup: {e}")
+
+# Default per-command timeouts (in seconds) to prevent process hangs
 DEFAULT_TIMEOUTS = {
     "termux-volume": 3,
     "termux-media-player": 3,
@@ -126,7 +147,7 @@ DEFAULT_TIMEOUTS = {
 # Helper Function for Executing Termux Commands
 # ==============================================================================
 def run_termux_cmd(cmd: list, timeout: Optional[int] = None) -> Dict[str, Any]:
-    """Execute a termux-api CLI command with smart per-command timeout and error logging."""
+    """Execute a termux-api CLI command with smart per-command timeout and automatic stale process cleanup."""
     if not cmd:
         return {"success": False, "error": "Empty command"}
 
@@ -174,9 +195,13 @@ def run_termux_cmd(cmd: list, timeout: Optional[int] = None) -> Dict[str, Any]:
             "data": json_data
         }
     except subprocess.TimeoutExpired:
-        logger.error(f"Command timed out after {timeout}s: {cmd_str}")
-        log_system_event(tag="TIMEOUT", cmd_str=cmd_str, returncode=-1, stderr=f"Timed out after {timeout}s")
-        return {"success": False, "error": f"Command timed out after {timeout}s"}
+        msg = f"Command timed out after {timeout}s: {cmd_str}"
+        logger.error(msg)
+        # Automatically clean up lingering termux-api process
+        if cmd_binary.startswith("termux-"):
+            cleanup_stale_termux_api_processes()
+        log_system_event(tag="TIMEOUT", cmd_str=cmd_str, returncode=-1, stderr=msg)
+        return {"success": False, "error": msg, "timeout": True}
     except Exception as e:
         logger.error(f"Error executing {cmd_str}: {e}")
         log_system_event(tag="ERROR", cmd_str=cmd_str, returncode=-1, stderr=str(e))
@@ -1098,6 +1123,10 @@ def hourly_clock_daemon():
 
             # 3. Check Battery Low Level Alert (70%, 50%, 30%, 20%, 10%, 5%)
             check_battery_low_alert()
+
+            # 4. Periodic Housekeeping: Clean up lingering termux-api processes every 5 minutes
+            if now.minute % 5 == 0:
+                cleanup_stale_termux_api_processes()
 
         except Exception as e:
             logger.error(f"Error in hourly clock & routine daemon: {e}")
