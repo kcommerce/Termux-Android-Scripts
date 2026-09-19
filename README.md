@@ -115,3 +115,41 @@ The installation process will begin, and you'll be guided through the setup of t
   ```
 - For complete documentation, REST API specs, and O&M operations, see [termux-hub/README.md](termux-hub/README.md).
 
+## Backup & Restore Termux Environment
+
+You can back up your entire Termux environment (including all installed packages, Python virtual environments, scripts, configurations, and SSH keys) into a single archive and restore it onto another phone.
+
+### 1. Back Up Termux (Source Phone)
+
+Run the following commands in Termux on the source device:
+
+```bash
+# 1. Grant storage permission
+termux-setup-storage
+
+# 2. Create a compressed backup archive in internal storage (/sdcard)
+cd /data/data/com.termux/files
+tar -zcvf /sdcard/termux-backup.tar.gz --exclude='home/.cache' --exclude='usr/tmp' home usr
+```
+
+Transfer `/sdcard/termux-backup.tar.gz` to the target phone (via USB, Google Drive, or `scp`).
+
+### 2. Restore Termux (Target Phone)
+
+On the target phone:
+
+1. Install **Termux** (ensure it's from the same source, e.g., F-Droid or GitHub Releases).
+2. Copy `termux-backup.tar.gz` to internal storage (`/sdcard/`).
+3. Run the restore command in Termux:
+   ```bash
+   termux-setup-storage
+   cd /data/data/com.termux/files
+   tar -zxvf /sdcard/termux-backup.tar.gz --recursive-unlink
+   ```
+4. **Force close and restart** the Termux application.
+
+> [!NOTE]
+> - Both phones should share the same CPU architecture (e.g., `aarch64` $\rightarrow$ `aarch64`).
+> - Android OS settings (battery optimization, camera/microphone permissions, and Termux:Boot autostart) must be manually re-configured on the new phone.
+
+
