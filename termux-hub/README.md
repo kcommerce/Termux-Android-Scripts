@@ -8,7 +8,7 @@ A comprehensive, zero-friction senior care companion and remote caregiver dashbo
 
 The Senior Caregiver Termux Hub turns a repurposed Android smartphone into an automated safety and monitoring hub for elderly family members, requiring **zero physical interaction from the senior**.
 
-1. **Microsoft Edge Neural TTS & Hourly Clock:** Speaks hourly chimes and routine reminders (medications, drinking water, meals) using Microsoft Edge Neural Text-to-Speech (`edge-tts` with `th-TH-PremwadeeNeural` voice) played via `termux-media-player`.
+1. **24-Hour Fixed MP3 Talking Clock:** Automatically plays hourly audio chimes (`00-00.mp3` through `23-00.mp3`) via `termux-media-player`, with Google TTS (`termux-tts-speak` with `-l th`) for custom scheduled routine reminders (medications, drinking water, meals).
 2. **Remote Intercom & Voice Broadcaster:** Caregiver voice drop-ins via high-volume voice announcements, WebRTC live audio streaming, custom MP3 playback, and Find Phone siren alarm.
 3. **Remote Camera & Live Snapshot:** View front & rear camera hardware specifications (`termux-camera-info`), take live remote photos (`termux-camera-photo`), and view photo gallery history.
 4. **Real-Time GPS & Safe Geofence Tracker:** Real-time satellite tracking with Leaflet.js interactive maps and safe boundary breach monitoring.
@@ -29,14 +29,14 @@ The Senior Caregiver Termux Hub turns a repurposed Android smartphone into an au
                                     v
 +-------------------------------------------------------------------------+
 |                    Flask Backend Application (app.py)                   |
-|       (Session Auth + Concurrent HTTP 8888/HTTPS 8443 + Edge Neural TTS) |
+|       (Session Auth + Concurrent HTTP 8888/HTTPS 8443 + Audio Daemon)   |
 +-------------------------------------------------------------------------+
                                     |
-                           Async Subprocesses
+                            Async Subprocesses
                                     v
 +-------------------------------------------------------------------------+
 |                    Termux:API Binders & CLI Tools                       |
-| (edge-tts-speak, termux-media-player, termux-camera-photo, termux-api)  |
+| (termux-tts-speak, termux-media-player, termux-camera-photo, termux-api)|
 +-------------------------------------------------------------------------+
                                     |
                            Android HAL & Sensors
@@ -48,23 +48,9 @@ The Senior Caregiver Termux Hub turns a repurposed Android smartphone into an au
 
 ---
 
-## 🗣 Standalone CLI Speech Synthesizer (`edge-tts-speak`)
-
-The hub includes a standalone CLI tool `edge-tts-speak` deployed to `~/bin/edge-tts-speak` and `/usr/bin/edge-tts-speak`:
-
-```bash
-# Speak Thai neural speech directly from Termux terminal:
-edge-tts-speak "สวัสดีค่ะ ข้าพเจ้าขอประกาศว่า ขณะนี้เป็นเวลา 20 นาฬิกา ในราชอาณาจักรไทย"
-
-# Select voice model or rate adjustment:
-edge-tts-speak -v th-TH-NiwatNeural -r "+10%" "ข้อความเสียงผู้ชาย"
-```
-
----
-
 ## 🚀 Quick Deployment to Samsung S7 Edge
 
-Deploy the backend server, caregiver dashboard, CLI utilities, prerequisite checkers, and autostart configurations directly over SSH/SCP:
+Deploy the backend server, caregiver dashboard, talking-clock MP3 chimes, prerequisite checkers, and autostart configurations directly over SSH/SCP:
 
 ```bash
 # Execute deployment script (IP: 10.81.8.161, Port: 8022, User: root)
@@ -73,11 +59,10 @@ Deploy the backend server, caregiver dashboard, CLI utilities, prerequisite chec
 
 ### What `deploy.sh` does automatically:
 1. Verifies SSH connectivity to `termux-s7` (`10.81.8.161:8022`).
-2. Transfers `app.py`, `senior_caregiver_termux_hub.html`, `requirements.txt`, `edge-tts-speak`, `manage-service.sh`, `check-prerequisites.sh`, and `README.md` via `scp`.
-3. Installs `python`, `termux-api`, `termux-tools`, `termux-services`, `openssl-tool`, and `edge-tts` on the device.
-4. Installs `edge-tts-speak` CLI tool to `~/bin/edge-tts-speak` and `/usr/bin/edge-tts-speak`.
-5. Configures `Termux:Boot` autostart script at `~/.termux/boot/start-eldercare-hub` with `termux-wake-lock`.
-6. Launches the Flask server on **HTTP (8888)** and **HTTPS (8443)**.
+2. Transfers `app.py`, `senior_caregiver_termux_hub.html`, `requirements.txt`, `manage-service.sh`, `check-prerequisites.sh`, `README.md`, and 24-hour `talking-clock/*.mp3` chimes via `scp`.
+3. Installs `python`, `termux-api`, `termux-tools`, `termux-services`, and `openssl-tool` on the device.
+4. Configures `Termux:Boot` autostart script at `~/.termux/boot/start-eldercare-hub` with `termux-wake-lock`.
+5. Launches the Flask server on **HTTP (8888)** and **HTTPS (8443)**.
 
 ---
 

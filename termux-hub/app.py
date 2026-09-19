@@ -33,12 +33,27 @@ HTML_FILE = os.path.join(BASE_DIR, "senior_caregiver_termux_hub.html")
 CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".config", "eldercare")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "settings.json")
 SOUNDS_DIR = os.path.join(CONFIG_DIR, "sounds")
+TALKING_CLOCK_DIR = os.path.join(SOUNDS_DIR, "talking-clock")
 PHOTOS_DIR = os.path.join(CONFIG_DIR, "photos")
 CERT_FILE = os.path.join(CONFIG_DIR, "cert.pem")
 KEY_FILE = os.path.join(CONFIG_DIR, "key.pem")
 
 os.makedirs(SOUNDS_DIR, exist_ok=True)
+os.makedirs(TALKING_CLOCK_DIR, exist_ok=True)
 os.makedirs(PHOTOS_DIR, exist_ok=True)
+
+def get_talking_clock_mp3_path(hour: int) -> Optional[str]:
+    filename = f"{hour:02d}-00.mp3"
+    candidates = [
+        os.path.join(TALKING_CLOCK_DIR, filename),
+        os.path.join(SOUNDS_DIR, filename),
+        os.path.join(BASE_DIR, "talking-clock", filename),
+        os.path.join(BASE_DIR, "..", "talking-clock", filename),
+    ]
+    for cand in candidates:
+        if os.path.exists(cand):
+            return cand
+    return None
 
 # Enforce Google Text-to-speech Engine System-Wide with Thai language
 GOOGLE_TTS_ENGINE = "com.google.android.tts"
@@ -50,7 +65,7 @@ app.secret_key = "termux_hub_admin_secret_key_2026"
 @app.before_request
 def require_authentication():
     if request.method == "OPTIONS":
-        return None
+        return "", 200
 
     path = request.path
     if path in ["/", "/index.html", "/favicon.ico", "/api/login", "/api/auth-check"]:
@@ -466,47 +481,21 @@ def get_tts_engines():
 
     return jsonify({"success": True, "engines": engines, "default_engine": GOOGLE_TTS_ENGINE, "language": DEFAULT_TTS_LANG})
 
-def speak_text_sync(text: str, rate: str = "1.0", voice: str = "th-TH-PremwadeeNeural") -> Dict[str, Any]:
+def speak_text_sync(text: str, rate: str = "1.0") -> Dict[str, Any]:
     """
-    Synthesizes and speaks text using Microsoft Edge Neural TTS + termux-media-player.
-    Falls back to termux-tts-speak if edge-tts or network is unavailable.
+    Synthesizes and speaks text using termux-tts-speak (-e com.google.android.tts -l th).
     """
     clean_msg = text.strip('"').strip("'")
     if not clean_msg:
         return {"success": False, "error": "Empty message"}
 
-    rate_str = "+0%"
-    try:
-        r_float = float(rate)
-        pct = int(round((r_float - 1.0) * 100))
-        rate_str = f"{'+' if pct >= 0 else ''}{pct}%"
-    except (ValueError, TypeError):
-        pass
-
-    cache_file = os.path.join(SOUNDS_DIR, "tts_cache.mp3")
-
-    try:
-        import asyncio
-        import edge_tts
-        async def _synth():
-            communicate = edge_tts.Communicate(clean_msg, voice, rate=rate_str)
-            await communicate.save(cache_file)
-
-        asyncio.run(_synth())
-        if os.path.exists(cache_file) and os.path.getsize(cache_file) > 0:
-            run_termux_cmd(["termux-media-player", "stop"], timeout=2)
-            play_res = run_termux_cmd(["termux-media-player", "play", cache_file], timeout=15)
-            log_system_event("EDGE-TTS", f"Spoke via Edge Neural TTS ({voice}): '{clean_msg}'")
-            return {"success": True, "engine": "edge-tts", "voice": voice, "file": cache_file, "result": play_res}
-    except Exception as e:
-        logger.warning(f"Edge TTS synthesis failed ({e}), falling back to termux-tts-speak")
-
-    fallback_cmd = ["termux-tts-speak", "-e", GOOGLE_TTS_ENGINE, "-l", DEFAULT_TTS_LANG, "-r", str(rate), f'"{clean_msg}"']
-    return run_termux_cmd(fallback_cmd)
+    cmd = ["termux-tts-speak", "-e", GOOGLE_TTS_ENGINE, "-l", DEFAULT_TTS_LANG, "-r", str(rate), clean_msg]
+    log_system_event("TTS-SPEAK", f"Spoke via Google TTS: '{clean_msg}'")
+    return run_termux_cmd(cmd)
 
 @app.route("/api/tts", methods=["POST"])
 def speak_tts():
-    """Sets volume and speaks text aloud using Edge Neural TTS (fallback to Google TTS)."""
+    """Sets volume and speaks text aloud using Google TTS (termux-tts-speak)."""
     data = request.get_json(force=True, silent=True) or {}
     message = data.get("message", "ทดสอบการพูดด้วยเสียง")
     rate = str(data.get("rate", 1.0))
@@ -516,6 +505,35 @@ def speak_tts():
     clean_msg = message.strip('"')
     res = speak_text_sync(clean_msg, rate=rate)
     return jsonify(res)
+
+@app.route("/api/clock/test", methods=["POST"])
+def test_clock_chime():
+    """Plays the fixed hourly chime MP3 (HH-MM.mp3) for current or requested hour."""
+    data = request.get_json(force=True, silent=True) or {}
+    hour = data.get("hour")
+    if hour is None:
+        hour = datetime.now().hour
+    else:
+        try:
+            hour = int(hour)
+        except (ValueError, TypeError):
+            hour = datetime.now().hour
+
+    volume = str(data.get("volume", hub_state["clock_settings"].get("volume", 12)))
+    mp3_path = get_talking_clock_mp3_path(hour)
+    filename = f"{hour:02d}-00.mp3"
+
+    run_termux_cmd(["termux-volume", "music", volume])
+    if mp3_path and os.path.exists(mp3_path):
+        run_termux_cmd(["termux-media-player", "stop"], timeout=2)
+        res = run_termux_cmd(["termux-media-player", "play", mp3_path])
+        log_system_event("TALKING-CLOCK", f"Tested hourly chime MP3: {filename}")
+        return jsonify({"success": True, "file": filename, "path": mp3_path, "result": res})
+    else:
+        fallback_msg = f"ขณะนี้เวลา {hour} นาฬิกา"
+        res = speak_text_sync(fallback_msg)
+        log_system_event("TALKING-CLOCK", f"Hourly chime MP3 missing for hour {hour:02d}, used TTS fallback")
+        return jsonify({"success": True, "file": filename, "fallback_tts": True, "result": res})
 
 @app.route("/api/clock/settings", methods=["POST"])
 def update_clock_settings():
@@ -1031,20 +1049,26 @@ def hourly_clock_daemon():
                                     time.sleep(1)
                                     run_termux_cmd(["termux-media-player", "play", mp3_path])
 
-            # 2. Hourly Talking Clock Announcement
+            # 2. Hourly Talking Clock Announcement (plays fixed HH-MM.mp3)
             if settings.get("enabled", True):
                 start_h = settings.get("start_hour", 8)
                 end_h = settings.get("end_hour", 20)
 
                 if start_h <= now.hour <= end_h and now.minute == 0 and now.hour != last_spoken_hour:
                     last_spoken_hour = now.hour
-                    msg_template = settings.get("message_preset", "ขณะนี้เวลา {hour} นาฬิกา")
-                    msg = msg_template.format(hour=now.hour)
+                    filename = f"{now.hour:02d}-00.mp3"
+                    mp3_path = get_talking_clock_mp3_path(now.hour)
 
-                    logger.info(f"Hourly chime triggering at {now.hour}:00 - '{msg}'")
+                    logger.info(f"Hourly chime triggering at {now.hour}:00 - MP3: '{filename}'")
                     run_termux_cmd(["termux-volume", "music", volume])
-                    clean_msg = msg.strip('"')
-                    speak_text_sync(clean_msg, rate=rate)
+                    if mp3_path and os.path.exists(mp3_path):
+                        run_termux_cmd(["termux-media-player", "stop"], timeout=2)
+                        run_termux_cmd(["termux-media-player", "play", mp3_path])
+                        log_system_event("TALKING-CLOCK", f"Triggered hourly chime MP3: {filename}")
+                    else:
+                        msg = f"ขณะนี้เวลา {now.hour} นาฬิกา"
+                        speak_text_sync(msg, rate=rate)
+                        log_system_event("TALKING-CLOCK", f"Hourly chime MP3 missing for hour {now.hour:02d}, used TTS fallback")
 
             # 3. Check Battery Low Level Alert (70%, 50%, 30%, 20%, 10%, 5%)
             check_battery_low_alert()

@@ -442,7 +442,7 @@
             </div>
             <div>
               <h3 data-i18n="clock_title" class="font-display font-bold text-lg text-white">Hourly Talking Clock</h3>
-              <p data-i18n="clock_sub" class="text-xs text-slate-400">Automated hourly speech chimes powered by Google TTS</p>
+              <p data-i18n="clock_sub" class="text-xs text-slate-400">Automated hourly audio chimes (HH-MM.mp3) played via termux-media-player</p>
             </div>
           </div>
           <label class="relative inline-flex items-center cursor-pointer">
@@ -478,20 +478,21 @@
                 </div>
                 <input type="range" id="clock-volume" min="1" max="15" value="12" oninput="updateVolumeLabel(this.value)" class="w-full accent-violet-500 h-2 bg-slate-700 rounded-lg cursor-pointer">
               </div>
-              <div>
-                <div class="flex justify-between text-slate-300 mb-1">
-                  <span data-i18n="rate_lbl">Speaking Speed</span>
-                  <span class="font-mono text-violet-400" id="rate-val">1.0x</span>
-                </div>
-                <input type="range" id="speech-rate" min="0.6" max="1.5" step="0.05" value="1.0" oninput="updateRateLabel(this.value)" class="w-full accent-violet-500 h-2 bg-slate-700 rounded-lg cursor-pointer">
-              </div>
             </div>
           </div>
 
-          <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
-            <div>
-              <label data-i18n="msg_template_lbl" class="block text-slate-300 font-semibold mb-1">Hourly Message Template</label>
-              <textarea id="routine-message" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-violet-500 font-sans" placeholder="ขณะนี้เวลา {hour} นาฬิกา อย่าลืมจิบน้ำและรับประทานยาตามเวลาค่ะ"></textarea>
+          <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-4 flex flex-col justify-between">
+            <div class="space-y-2">
+              <label data-i18n="chime_file_info_lbl" class="block text-slate-300 font-semibold mb-1">Hourly Audio Chimes (HH-MM.mp3)</label>
+              <div class="bg-slate-900/80 border border-slate-700/60 rounded-xl p-3 text-slate-300 text-xs space-y-1.5">
+                <div class="flex items-center gap-2 text-violet-400 font-medium">
+                  <i class="fa-solid fa-file-audio"></i>
+                  <span>Fixed Hourly Audio Playback</span>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                  Automatically plays corresponding <code class="text-cyan-400 bg-slate-950 px-1 py-0.5 rounded font-mono">HH-MM.mp3</code> chime (e.g. <code class="text-cyan-400 bg-slate-950 px-1 py-0.5 rounded font-mono">08-00.mp3</code>, <code class="text-cyan-400 bg-slate-950 px-1 py-0.5 rounded font-mono">20-00.mp3</code>) on every exact hour within the active window.
+                </p>
+              </div>
             </div>
 
             <div class="flex items-center gap-2 pt-2">
@@ -1975,11 +1976,9 @@
       const startHour = parseInt(startTime.split(':')[0]) || 8;
       const endHour = parseInt(endTime.split(':')[0]) || 20;
       const volume = parseInt(document.getElementById('clock-volume').value) || 12;
-      const rate = parseFloat(document.getElementById('speech-rate').value) || 1.0;
-      const messagePreset = document.getElementById('routine-message').value || "ขณะนี้เวลา {hour} นาฬิกา อย่าลืมจิบน้ำและรับประทานยาตามเวลาค่ะ";
 
       updateHoursDisplay();
-      appendTerminalLog('CLOCK-SETTINGS', `Saving talking clock config: ${startTime}-${endTime}, Vol:${volume}, Rate:${rate}x`);
+      appendTerminalLog('CLOCK-SETTINGS', `Saving talking clock config: ${startTime}-${endTime}, Vol:${volume}`);
 
       try {
         const res = await fetch('/api/clock/settings', {
@@ -1989,9 +1988,7 @@
             enabled,
             start_hour: startHour,
             end_hour: endHour,
-            volume,
-            rate,
-            message_preset: messagePreset
+            volume
           })
         });
         const json = await res.json();
@@ -2028,13 +2025,6 @@
             document.getElementById('clock-volume').value = cs.volume;
             updateVolumeLabel(cs.volume);
           }
-          if (cs.rate !== undefined && document.getElementById('speech-rate')) {
-            document.getElementById('speech-rate').value = cs.rate;
-            updateRateLabel(cs.rate);
-          }
-          if (cs.message_preset && document.getElementById('routine-message')) {
-            document.getElementById('routine-message').value = cs.message_preset;
-          }
         }
       } catch (e) {
         console.error('Error loading clock settings:', e);
@@ -2042,23 +2032,26 @@
     }
 
     async function testHourlyChime() {
-      const rawMessage = document.getElementById('routine-message').value || "ขณะนี้เวลา {hour} นาฬิกา อย่าลืมจิบน้ำและรับประทานยาตามเวลาค่ะ";
       const currentHour = new Date().getHours();
-      const message = rawMessage.replace(/\{hour\}/g, currentHour);
-      const rate = document.getElementById('speech-rate').value;
-      const volume = document.getElementById('clock-volume').value;
+      const volume = document.getElementById('clock-volume').value || 12;
+      const filename = `${String(currentHour).padStart(2, '0')}-00.mp3`;
 
-      appendTerminalLog('TERMUX-API', `termux-tts-speak -e com.google.android.tts -r ${rate} "${message}"`);
+      appendTerminalLog('TERMUX-API', `termux-media-player play ~/.config/eldercare/sounds/talking-clock/${filename}`);
 
       try {
-        const res = await fetch('/api/tts', {
+        const res = await fetch('/api/clock/test', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message, rate: parseFloat(rate), volume: parseInt(volume) })
+          body: JSON.stringify({ hour: currentHour, volume: parseInt(volume) })
         });
-        showToast(`Google TTS Chime triggered ("${message}")`, 'success');
+        const json = await res.json();
+        if (json.success) {
+          showToast(`Hourly Chime MP3 triggered (${filename})`, 'success');
+        } else {
+          showToast(`Chime play error: ${json.error || 'Failed'}`, 'danger');
+        }
       } catch (err) {
-        showToast(`TTS error: ${err.message}`, 'danger');
+        showToast(`Chime error: ${err.message}`, 'danger');
       }
     }
 

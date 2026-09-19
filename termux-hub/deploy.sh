@@ -57,18 +57,22 @@ SCP_BASE="scp -o StrictHostKeyChecking=accept-new -P ${TARGET_PORT}"
 
 # 2. Create Remote Target Directory
 info "Creating remote installation directory: ${REMOTE_DIR}..."
-${SSH_BASE} "mkdir -p ${REMOTE_DIR} ~/.termux/boot ~/.config/eldercare"
+${SSH_BASE} "mkdir -p ${REMOTE_DIR} ~/.termux/boot ~/.config/eldercare/sounds/talking-clock"
 
-# 3. Copy Application Files via SCP
-info "Transferring application files..."
+# 3. Copy Application Files & Talking Clock MP3s via SCP
+info "Transferring application files and talking-clock MP3 chimes..."
 ${SCP_BASE} "${SCRIPT_DIR}/app.py" \
            "${SCRIPT_DIR}/senior_caregiver_termux_hub.html" \
            "${SCRIPT_DIR}/requirements.txt" \
-           "${SCRIPT_DIR}/edge-tts-speak" \
            "${SCRIPT_DIR}/manage-service.sh" \
            "${SCRIPT_DIR}/check-prerequisites.sh" \
            "${SCRIPT_DIR}/README.md" \
            "${TARGET_USER}@${TARGET_IP}:${REMOTE_DIR}/"
+
+if [ -d "${SCRIPT_DIR}/../talking-clock" ]; then
+    info "Transferring 24-hour talking clock MP3 chimes..."
+    ${SCP_BASE} -r "${SCRIPT_DIR}/../talking-clock/"* "${TARGET_USER}@${TARGET_IP}:~/.config/eldercare/sounds/talking-clock/"
+fi
 
 success "Files transferred successfully."
 
@@ -89,16 +93,8 @@ ${SSH_BASE} bash -c "'
     ./venv/bin/pip install --upgrade pip
     ./venv/bin/pip install -r requirements.txt
 
-    echo \"---> Setting executable permissions & installing edge-tts-speak CLI...\"
-    chmod +x manage-service.sh check-prerequisites.sh edge-tts-speak
-    mkdir -p \$HOME/bin
-    cp -f edge-tts-speak \$HOME/bin/edge-tts-speak
-    chmod +x \$HOME/bin/edge-tts-speak
-    if [ -d \"/data/data/com.termux/files/usr/bin\" ]; then
-        sed -i \"1s|.*|#!\$HOME/eldercare-hub/venv/bin/python3|\" \$HOME/bin/edge-tts-speak
-        cp -f \$HOME/bin/edge-tts-speak /data/data/com.termux/files/usr/bin/edge-tts-speak 2>/dev/null || true
-        chmod +x /data/data/com.termux/files/usr/bin/edge-tts-speak 2>/dev/null || true
-    fi
+    echo \"---> Setting executable permissions...\"
+    chmod +x manage-service.sh check-prerequisites.sh
 
     echo \"---> Configuring Termux:Boot autostart script...\"
     BOOT_SCRIPT=\"\$HOME/.termux/boot/start-eldercare-hub\"
