@@ -712,10 +712,74 @@ def send_sms():
     return jsonify(res)
 
 # ==============================================================================
-# Background Task: Hourly Talking Clock & Custom Routine Daemon Thread
+# Background Task: Hourly Talking Clock, Custom Routines & Battery Guard
 # ==============================================================================
+BATTERY_ALERT_THRESHOLDS = [70, 50, 30, 20, 10, 5]
+alerted_battery_levels = set()
+
+def check_battery_low_alert():
+    """Checks battery level and triggers 3x TTS charge alert when dropping to 70%, 50%, 30%, 20%, 10%, or 5%."""
+    global alerted_battery_levels
+    try:
+        res = run_termux_cmd(["termux-battery-status"])
+        data = res.get("data")
+        if not data and res.get("stdout"):
+            try:
+                data = json.loads(res["stdout"])
+            except Exception:
+                data = {}
+        if not isinstance(data, dict):
+            return
+
+        pct = data.get("percentage")
+        status = str(data.get("status", "")).upper()
+        plugged = str(data.get("plugged", "")).upper()
+
+        is_charging = "CHARGING" in status or ("PLUGGED" in plugged and "UNPLUGGED" not in plugged)
+
+        if is_charging:
+            if alerted_battery_levels:
+                logger.info("Device is charging/plugged in. Resetting low battery alert thresholds.")
+                alerted_battery_levels.clear()
+            return
+
+        if pct is not None:
+            pct = int(pct)
+            for threshold in BATTERY_ALERT_THRESHOLDS:
+                if pct <= threshold and threshold not in alerted_battery_levels:
+                    alerted_battery_levels.add(threshold)
+                    msg = "ช่วยหนูด้วยค่ะ ช่วย charge battery ให้หนูด้วย"
+                    clean_msg = msg.strip('"')
+                    logger.warning(f"Low battery alert triggered! Level: {pct}% (Threshold: {threshold}%). Playing alert 3 times.")
+                    log_system_event("BATTERY-ALERT", f"Low battery at {pct}% (Threshold: {threshold}%) - Playing alert 3x: '{clean_msg}'")
+
+                    run_termux_cmd(["termux-volume", "music", "15"])
+                    tts_cmd = ["termux-tts-speak", "-e", GOOGLE_TTS_ENGINE, "-l", DEFAULT_TTS_LANG, "-r", "0.9", f'"{clean_msg}"']
+
+                    for i in range(3):
+                        run_termux_cmd(tts_cmd)
+                        time.sleep(3)
+                    break
+    except Exception as e:
+        logger.error(f"Error checking low battery alert: {e}")
+
+def play_startup_announcement():
+    """Plays TTS announcement when app starts: 'System is ready สวัสดีค่ะ ระบบ Termux Hub เริ่มทำงาน '."""
+    try:
+        time.sleep(1)
+        msg = "System is ready สวัสดีค่ะ ระบบ Termux Hub เริ่มทำงาน "
+        clean_msg = msg.strip('"')
+        logger.info(f"Playing startup announcement: '{clean_msg}'")
+        log_system_event("STARTUP", f"Startup announcement: '{clean_msg}'")
+
+        run_termux_cmd(["termux-volume", "music", "15"])
+        tts_cmd = ["termux-tts-speak", "-e", GOOGLE_TTS_ENGINE, "-l", DEFAULT_TTS_LANG, "-r", "0.9", f'"{clean_msg}"']
+        run_termux_cmd(tts_cmd)
+    except Exception as e:
+        logger.error(f"Error in startup announcement: {e}")
+
 def hourly_clock_daemon():
-    """Background thread for hourly reminders and custom routine triggers using Google TTS '-l th'."""
+    """Background thread for hourly reminders, custom routines, and low battery checks using Google TTS '-l th'."""
     logger.info("Starting Hourly Talking Clock & Custom Routine Daemon Thread...")
     last_spoken_hour = -1
     last_triggered_key = ""
@@ -776,6 +840,10 @@ def hourly_clock_daemon():
                     clean_msg = msg.strip('"')
                     cmd = ["termux-tts-speak", "-e", GOOGLE_TTS_ENGINE, "-l", DEFAULT_TTS_LANG, "-r", rate, f'"{clean_msg}"']
                     run_termux_cmd(cmd)
+
+            # 3. Check Battery Low Level Alert (70%, 50%, 30%, 20%, 10%, 5%)
+            check_battery_low_alert()
+
         except Exception as e:
             logger.error(f"Error in hourly clock & routine daemon: {e}")
 
@@ -834,6 +902,9 @@ def run_https_server(host: str, port: int, cert_file: str, key_file: str):
 load_settings()
 daemon_thread = threading.Thread(target=hourly_clock_daemon, daemon=True)
 daemon_thread.start()
+
+startup_thread = threading.Thread(target=play_startup_announcement, daemon=True)
+startup_thread.start()
 
 if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
