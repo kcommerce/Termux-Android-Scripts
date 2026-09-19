@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ElderCare Hub - Termux Android Companion</title>
+  <title>Termux Hub - Caregiver Companion</title>
   
   <!-- Google Fonts: Inter, Outfit, and Sarabun for Thai typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -247,7 +247,7 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="font-display font-bold text-lg tracking-tight text-white flex items-center gap-2">
-              <span>ElderCare</span><span class="text-rose-400 font-light text-xs uppercase px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20">Termux Hub</span>
+              <span class="text-rose-400 font-bold text-lg">Termux Hub</span>
             </h1>
             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-ping"></span>
@@ -528,6 +528,41 @@
               <h3 data-i18n="intercom_title" class="font-display font-bold text-lg text-white">Remote Intercom & Audio Broadcaster</h3>
               <p data-i18n="intercom_sub" class="text-xs text-slate-400">Live voice drop-in (Google TTS) and custom MP3 file upload & management</p>
             </div>
+          </div>
+        <!-- WebRTC Live Intercom Walkie-Talkie Card -->
+        <div class="glass-card p-6 rounded-2xl border border-rose-500/30 bg-gradient-to-br from-rose-950/20 via-slate-900/80 to-slate-900 space-y-4 text-xs shadow-xl relative overflow-hidden">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center">
+                <i class="fa-solid fa-walkie-talkie text-rose-400 text-base"></i>
+              </div>
+              <div>
+                <h4 data-i18n="webrtc_card_title" class="font-semibold text-slate-100 text-sm flex items-center gap-2">
+                  WebRTC Live Voice Intercom (One-Way Talkie)
+                </h4>
+                <p data-i18n="webrtc_card_sub" class="text-[11px] text-slate-400">Press button to stream your live voice directly to the phone speaker (HTTPS)</p>
+              </div>
+            </div>
+            <div id="webrtc-protocol-badge" class="px-2.5 py-1 rounded-full text-[11px] font-medium border flex items-center gap-1.5 bg-slate-900 border-slate-700 text-slate-400">
+              <!-- Dynamically populated by checkWebRTCProtocolSupport() -->
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-slate-950/70 border border-slate-800/80">
+            <!-- Left: Mic Status & Live Audio Meter -->
+            <div class="space-y-1 text-center sm:text-left">
+              <div id="webrtc-status-text" data-i18n="webrtc_status_idle" class="font-medium text-slate-300 text-xs flex items-center justify-center sm:justify-start gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span> Ready to talk
+              </div>
+              <div id="webrtc-timer-display" class="font-mono text-sm text-rose-400 font-bold hidden">● 00:00</div>
+              <p data-i18n="webrtc_hint" class="text-[11px] text-slate-500">One-way transmission from caregiver browser to senior phone speaker</p>
+            </div>
+
+            <!-- Right: Big Push-to-Talk Button -->
+            <button id="webrtc-talk-btn" onclick="toggleWebRTCTalk()" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 via-rose-600 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white font-bold text-sm flex items-center justify-center gap-3 shadow-lg shadow-rose-500/25 transition-all transform active:scale-95">
+              <i id="webrtc-btn-icon" class="fa-solid fa-microphone text-lg"></i>
+              <span id="webrtc-btn-text" data-i18n="webrtc_start_talk">Push to Talk</span>
+            </button>
           </div>
         </div>
 
@@ -820,7 +855,7 @@
       </div>
 
       <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 font-mono text-xs space-y-1.5 h-44 overflow-y-auto" id="terminal-log-stream">
-        <div class="text-slate-500">[SYSTEM] Eldercare Hub dashboard initialized. Connected to 127.0.0.1:8888. Engine: Google TTS.</div>
+        <div class="text-slate-500">[SYSTEM] Termux Hub dashboard initialized. Connected to 127.0.0.1:8888. Engine: Google TTS.</div>
       </div>
     </section>
 
@@ -880,7 +915,7 @@
       <!-- Preset 2: Status Bar Notification Test -->
       <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 text-xs">
         <h4 class="font-semibold text-cyan-300 flex items-center gap-1.5"><i class="fa-solid fa-bell"></i> Android Status Notification Test</h4>
-        <input type="text" id="help-notif-title" value="ElderCare System Check" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200" placeholder="Title">
+        <input type="text" id="help-notif-title" value="Termux Hub System Check" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200" placeholder="Title">
         <input type="text" id="help-notif-content" value="Device hardware diagnostic check complete." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200" placeholder="Content">
         <div class="flex items-center justify-between gap-3">
           <select id="help-notif-priority" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-200">
@@ -1385,8 +1420,187 @@
     }
 
     /* =========================================================================
-       MODULE 2: INTERCOM & CUSTOM MP3 AUDIO
+       MODULE 2: INTERCOM & WEBRTC LIVE VOICE STREAM & CUSTOM MP3 AUDIO
        ========================================================================= */
+    let isWebRTCTalking = false;
+    let webrtcMediaRecorder = null;
+    let webrtcAudioChunks = [];
+    let webrtcStream = null;
+    let webrtcTimerInterval = null;
+    let webrtcSeconds = 0;
+
+    function checkWebRTCProtocolSupport() {
+      const badge = document.getElementById('webrtc-protocol-badge');
+      if (!badge) return;
+      const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (isSecure) {
+        badge.className = "px-2.5 py-1 rounded-full text-[11px] font-medium border flex items-center gap-1.5 bg-emerald-500/10 border-emerald-500/30 text-emerald-400";
+        badge.innerHTML = `<i class="fa-solid fa-lock text-[10px]"></i> <span>HTTPS WebRTC Ready</span>`;
+      } else {
+        const httpsUrl = `https://${window.location.hostname}:8443${window.location.pathname}`;
+        badge.className = "px-2.5 py-1 rounded-full text-[11px] font-medium border flex items-center gap-1.5 bg-amber-500/10 border-amber-500/30 text-amber-400 cursor-pointer";
+        badge.innerHTML = `<a href="${httpsUrl}" class="flex items-center gap-1 hover:underline"><i class="fa-solid fa-triangle-exclamation text-[10px]"></i> <span>Switch to HTTPS (Port 8443)</span></a>`;
+      }
+    }
+
+    async function toggleWebRTCTalk() {
+      if (isWebRTCTalking) {
+        await stopWebRTCStream();
+      } else {
+        await startWebRTCStream();
+      }
+    }
+
+    async function startWebRTCStream() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        const httpsUrl = `https://${window.location.hostname}:8443${window.location.pathname}`;
+        showToast('Microphone access requires HTTPS protocol. Please connect via https://...:8443', 'warning');
+        appendTerminalLog('WEBRTC', `ERROR: Microphone restricted on HTTP. HTTPS required: ${httpsUrl}`);
+        return;
+      }
+
+      try {
+        webrtcStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        webrtcAudioChunks = [];
+
+        let options = {};
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+          options = { mimeType: 'audio/webm;codecs=opus' };
+        } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+          options = { mimeType: 'audio/webm' };
+        } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+          options = { mimeType: 'audio/ogg;codecs=opus' };
+        }
+
+        webrtcMediaRecorder = new MediaRecorder(webrtcStream, options);
+
+        webrtcMediaRecorder.ondataavailable = (event) => {
+          if (event.data && event.data.size > 0) {
+            webrtcAudioChunks.push(event.data);
+          }
+        };
+
+        webrtcMediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(webrtcAudioChunks, { type: webrtcMediaRecorder.mimeType || 'audio/webm' });
+          await sendWebRTCAudioBlob(audioBlob);
+        };
+
+        webrtcMediaRecorder.start();
+        isWebRTCTalking = true;
+        webrtcSeconds = 0;
+
+        const btn = document.getElementById('webrtc-talk-btn');
+        const icon = document.getElementById('webrtc-btn-icon');
+        const text = document.getElementById('webrtc-btn-text');
+        const statusText = document.getElementById('webrtc-status-text');
+        const timerDisp = document.getElementById('webrtc-timer-display');
+
+        if (btn) btn.className = "w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm flex items-center justify-center gap-3 shadow-lg shadow-rose-600/40 animate-pulse transition-all transform active:scale-95";
+        if (icon) icon.className = "fa-solid fa-microphone-lines text-lg animate-bounce text-white";
+        if (text) text.textContent = currentLang === 'th' ? "กำลังพูด... กดอีกครั้งเพื่อหยุด" : "Talking... Press to Stop";
+        if (statusText) {
+          statusText.className = "font-medium text-rose-400 text-xs flex items-center justify-center sm:justify-start gap-2";
+          statusText.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span> Live Streaming Voice to Phone Speaker`;
+        }
+        if (timerDisp) {
+          timerDisp.classList.remove('hidden');
+          timerDisp.textContent = `● 00:00`;
+        }
+
+        webrtcTimerInterval = setInterval(() => {
+          webrtcSeconds++;
+          const mins = String(Math.floor(webrtcSeconds / 60)).padStart(2, '0');
+          const secs = String(webrtcSeconds % 60).padStart(2, '0');
+          if (timerDisp) timerDisp.textContent = `● ${mins}:${secs}`;
+        }, 1000);
+
+        appendTerminalLog('WEBRTC', `WebRTC Live Microphone recording started (${webrtcMediaRecorder.mimeType})`);
+        showToast(currentLang === 'th' ? 'เริ่มสตรีมเสียงสด พูดเข้าไมโครโฟนได้เลย' : 'Live voice streaming started. Speak into mic', 'info');
+
+      } catch (err) {
+        console.error('WebRTC getUserMedia error:', err);
+        showToast(`Microphone error: ${err.message}`, 'danger');
+        appendTerminalLog('WEBRTC', `ERROR accessing microphone: ${err.message}`);
+        resetWebRTCUI();
+      }
+    }
+
+    async function stopWebRTCStream() {
+      if (!isWebRTCTalking) return;
+      isWebRTCTalking = false;
+
+      if (webrtcTimerInterval) {
+        clearInterval(webrtcTimerInterval);
+        webrtcTimerInterval = null;
+      }
+
+      if (webrtcMediaRecorder && webrtcMediaRecorder.state !== 'inactive') {
+        webrtcMediaRecorder.stop();
+      }
+
+      if (webrtcStream) {
+        webrtcStream.getTracks().forEach(track => track.stop());
+        webrtcStream = null;
+      }
+
+      const statusText = document.getElementById('webrtc-status-text');
+      if (statusText) {
+        statusText.className = "font-medium text-cyan-400 text-xs flex items-center justify-center sm:justify-start gap-2";
+        statusText.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-cyan-400"></i> Transmitting live voice to phone speaker...`;
+      }
+    }
+
+    async function sendWebRTCAudioBlob(blob) {
+      try {
+        const formData = new FormData();
+        formData.append('audio', blob, 'live_intercom.webm');
+
+        appendTerminalLog('WEBRTC', `Sending WebRTC voice stream (${(blob.size / 1024).toFixed(1)} KB) to /api/intercom/live-stream`);
+
+        const res = await fetch('/api/intercom/live-stream', {
+          method: 'POST',
+          body: formData
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          showToast(currentLang === 'th' ? 'เล่นเสียงพูดสดออกลำโพงโทรศัพท์เรียบร้อย' : 'Live voice playing on phone speaker!', 'success');
+          appendTerminalLog('WEBRTC', `Voice played on phone via ${result.player} (${result.size_bytes} bytes)`);
+        } else {
+          showToast(`WebRTC intercom error: ${result.error}`, 'danger');
+          appendTerminalLog('WEBRTC', `ERROR playing audio on phone: ${result.error}`);
+        }
+      } catch (err) {
+        console.error('Send WebRTC blob error:', err);
+        showToast(`Transmission failed: ${err.message}`, 'danger');
+        appendTerminalLog('WEBRTC', `ERROR sending voice stream: ${err.message}`);
+      } finally {
+        resetWebRTCUI();
+      }
+    }
+
+    function resetWebRTCUI() {
+      isWebRTCTalking = false;
+      if (webrtcTimerInterval) {
+        clearInterval(webrtcTimerInterval);
+        webrtcTimerInterval = null;
+      }
+      const btn = document.getElementById('webrtc-talk-btn');
+      const icon = document.getElementById('webrtc-btn-icon');
+      const text = document.getElementById('webrtc-btn-text');
+      const statusText = document.getElementById('webrtc-status-text');
+      const timerDisp = document.getElementById('webrtc-timer-display');
+
+      if (btn) btn.className = "w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 via-rose-600 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white font-bold text-sm flex items-center justify-center gap-3 shadow-lg shadow-rose-500/25 transition-all transform active:scale-95";
+      if (icon) icon.className = "fa-solid fa-microphone text-lg";
+      if (text) text.textContent = currentLang === 'th' ? "กดเพื่อพูด" : "Push to Talk";
+      if (statusText) {
+        statusText.className = "font-medium text-slate-300 text-xs flex items-center justify-center sm:justify-start gap-2";
+        statusText.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span> Ready to talk`;
+      }
+      if (timerDisp) timerDisp.classList.add('hidden');
+    }
+
     async function broadcastVoiceMessage() {
       const text = document.getElementById('broadcast-text').value;
       if (!text.trim()) {
@@ -2122,6 +2336,11 @@
         "rec_upload_btn": "Upload",
         "available_chimes": "Available Custom Chimes",
         "refresh_chimes": "Refresh",
+        "webrtc_card_title": "WebRTC Live Voice Intercom (One-Way Talkie)",
+        "webrtc_card_sub": "Press button to stream your live voice directly to the phone speaker (HTTPS)",
+        "webrtc_status_idle": "Ready to talk",
+        "webrtc_hint": "One-way transmission from caregiver browser to senior phone speaker",
+        "webrtc_start_talk": "Push to Talk",
 
         "gps_title": "Real-Time GPS Tracker & Safe Geofence",
         "gps_sub": "Leaflet.js interactive satellite tracking and boundary breach alerts",
@@ -2221,6 +2440,11 @@
         "rec_upload_btn": "อัปโหลด",
         "available_chimes": "รายการไฟล์เสียงในเครื่อง",
         "refresh_chimes": "รีเฟรช",
+        "webrtc_card_title": "ระบบสื่อสารเสียงสด WebRTC (กดเพื่อพูด)",
+        "webrtc_card_sub": "กดปุ่มเพื่อสตรีมเสียงพูดสดไปยังลำโพงโทรศัพท์ (ใช้งานผ่าน HTTPS)",
+        "webrtc_status_idle": "พร้อมสำหรับการพูด",
+        "webrtc_hint": "การสื่อสารทางเดียวจากเบราว์เซอร์ผู้ดูแลไปยังลำโพงโทรศัพท์",
+        "webrtc_start_talk": "กดเพื่อพูด",
 
         "gps_title": "ระบบติดตามตำแหน่ง GPS แบบเรียลไทม์",
         "gps_sub": "ติดตามตำแหน่งแผนที่ดาวเทียมและระบบแจ้งเตือนเขตรัศมี",
@@ -2292,6 +2516,7 @@
       initTheme();
       const savedLang = localStorage.getItem('caregiver_lang') || 'en';
       setLanguage(savedLang);
+      checkWebRTCProtocolSupport();
       initMap();
       locateSeniorNow();
       initBatteryPolling();

@@ -26,7 +26,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
-logger = logging.getLogger("EldercareHub")
+logger = logging.getLogger("TermuxHub")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 HTML_FILE = os.path.join(BASE_DIR, "senior_caregiver_termux_hub.html")
@@ -457,6 +457,35 @@ def broadcast_intercom():
     cmd = ["termux-tts-speak", "-e", GOOGLE_TTS_ENGINE, "-l", DEFAULT_TTS_LANG, "-p", "1.0", "-r", rate, f'"ประกาศจากผู้ดูแล: {clean_msg}"']
     res = run_termux_cmd(cmd)
     return jsonify(res)
+
+@app.route("/api/intercom/live-stream", methods=["POST"])
+def live_stream_intercom():
+    """Receives WebRTC / MediaRecorder live audio stream blob, saves to live_intercom.webm, and plays immediately on phone speaker."""
+    if "audio" not in request.files:
+        return jsonify({"success": False, "error": "No audio blob provided"}), 400
+
+    audio_file = request.files["audio"]
+    if audio_file.filename == "":
+        return jsonify({"success": False, "error": "Empty audio file name"}), 400
+
+    target_path = os.path.join(SOUNDS_DIR, "live_intercom.webm")
+    audio_file.save(target_path)
+    file_size = os.path.getsize(target_path)
+    logger.info(f"Received WebRTC live voice stream: {target_path} ({file_size} bytes)")
+
+    # Boost music volume to maximum and trigger gentle vibration hint
+    run_termux_cmd(["termux-volume", "music", "15"])
+    run_termux_cmd(["termux-vibrate", "-d", "150", "-f"])
+
+    # Stop any current playback and play live intercom voice audio blob
+    run_termux_cmd(["termux-media-player", "stop"])
+    res = run_termux_cmd(["termux-media-player", "play", target_path])
+    if res.get("returncode") != 0 or (res.get("stderr") and "Error" in res.get("stderr")):
+        # Fallback to mpv player
+        res_mpv = run_termux_cmd(["mpv", "--no-video", target_path])
+        return jsonify({"success": True, "size_bytes": file_size, "player": "mpv", "result": res_mpv})
+
+    return jsonify({"success": True, "size_bytes": file_size, "player": "termux-media-player", "result": res})
 
 @app.route("/api/siren", methods=["POST"])
 def trigger_siren():
