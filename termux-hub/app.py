@@ -237,11 +237,67 @@ def handle_options(path):
     return "", 200
 
 # ==============================================================================
+def get_device_model_info():
+    """Queries actual hardware brand and model from Android system props."""
+    res_model = run_termux_cmd(["getprop", "ro.product.model"], timeout=2)
+    model = res_model.get("stdout", "").strip() or "Android Device"
+
+    res_brand = run_termux_cmd(["getprop", "ro.product.brand"], timeout=2)
+    brand = res_brand.get("stdout", "").strip()
+
+    if "G935" in model or "g935" in model:
+        friendly_name = "Samsung S7 Edge"
+    elif brand and not model.lower().startswith(brand.lower()):
+        friendly_name = f"{brand.capitalize()} {model}"
+    else:
+        friendly_name = model
+
+    trimmed_name = friendly_name[:20].strip()
+    return {
+        "model": model,
+        "brand": brand,
+        "full_name": friendly_name,
+        "display_name": trimmed_name
+    }
+
+def get_network_info():
+    """Queries current network connection (WiFi or Cellular)."""
+    res = run_termux_cmd(["termux-wifi-connectioninfo"], timeout=4)
+    wifi_data = res.get("data")
+    if not wifi_data and res.get("stdout"):
+        try:
+            wifi_data = json.loads(res["stdout"])
+        except Exception:
+            pass
+
+    if wifi_data and isinstance(wifi_data, dict) and wifi_data.get("supplicant_state") == "COMPLETED" and wifi_data.get("ip") and wifi_data.get("ip") != "0.0.0.0":
+        ssid = wifi_data.get("ssid", "").strip('"') or "WiFi"
+        rssi = wifi_data.get("rssi", 0)
+        return {
+            "type": "wifi",
+            "ssid": ssid,
+            "rssi": rssi,
+            "ip": wifi_data.get("ip"),
+            "speed_mbps": wifi_data.get("link_speed_mbps", 0)
+        }
+
+    # Cellular / mobile data route check fallback
+    route_res = run_termux_cmd(["ip", "route", "get", "1.1.1.1"], timeout=3)
+    route_out = route_res.get("stdout", "")
+    if "dev" in route_out:
+        if "wlan" in route_out:
+            return {"type": "wifi", "ssid": "WiFi Connected", "rssi": -60}
+        else:
+            return {"type": "cellular", "ssid": "Cellular Data", "rssi": -70}
+
+    return {"type": "disconnected", "ssid": "Offline", "rssi": 0}
+
+# ==============================================================================
 # Routes: System Telemetry & Status
 # ==============================================================================
 @app.route("/api/status", methods=["GET"])
 def get_system_status():
-    """Fetches overall system battery, location cache, routines, and hub state."""
+    """Fetches overall system battery, location cache, routines, device info, network info, and hub state."""
     battery_res = run_termux_cmd(["termux-battery-status"])
     battery_data = battery_res.get("data")
     if not battery_data and battery_res.get("stdout"):
@@ -261,7 +317,9 @@ def get_system_status():
         "contacts": hub_state.get("contacts", []),
         "last_known_location": hub_state["last_known_location"],
         "last_fall_alert": hub_state["last_fall_alert"],
-        "phone_name": hub_state.get("phone_name", "Grandma Evelyn")
+        "phone_name": hub_state.get("phone_name", "Grandma Evelyn"),
+        "device_info": get_device_model_info(),
+        "network_info": get_network_info()
     })
 
 @app.route("/api/phone-name", methods=["POST"])
@@ -278,8 +336,22 @@ def update_phone_name():
 
 @app.route("/api/logs", methods=["GET"])
 def get_system_logs():
-    """Returns recent system telemetry, CLI execution, and logic logs."""
-    return jsonify({"success": True, "logs": system_logs})
+    """Returns recent system telemetry, CLI execution, and server log file lines."""
+    file_lines = []
+    log_file_path = os.path.join(CONFIG_DIR, "app.log")
+    if os.path.exists(log_file_path):
+        try:
+            with open(log_file_path, "r", encoding="utf-8", errors="ignore") as f:
+                lines = f.readlines()
+                file_lines = [l.strip() for l in lines[-100:] if l.strip()]
+        except Exception:
+            pass
+
+    return jsonify({
+        "success": True,
+        "logs": system_logs,
+        "file_logs": file_lines
+    })
 
 @app.route("/api/battery", methods=["GET"])
 def get_battery_status():
@@ -892,7 +964,7 @@ def ensure_ssl_certs() -> bool:
             openssl_bin, "req", "-x509", "-newkey", "rsa:2048",
             "-keyout", KEY_FILE, "-out", CERT_FILE,
             "-days", "3650", "-nodes",
-            "-subj", "/CN=Termux-ElderCare-Hub"
+            "-subj", "/CN=Termux-Hub"
         ]
         res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode == 0 and os.path.exists(CERT_FILE) and os.path.exists(KEY_FILE):

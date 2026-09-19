@@ -258,11 +258,11 @@
               </button>
             </span>
           </div>
-          <p data-i18n="persona_sub" class="text-xs text-slate-400 hidden sm:block">Samsung S7 Edge · Android Termux:API · Google TTS Enforced · Port 8888</p>
+          <p class="text-xs text-slate-400 hidden sm:block"><span id="device-model-display">Samsung S7 Edge</span> · Android Termux:API · Google TTS Enforced · Port 8888</p>
         </div>
       </div>
 
-      <!-- Header Right Controls: Battery & 2-Decimal Temp Pill, Find Phone, Lang -->
+      <!-- Header Right Controls: Battery & 2-Decimal Temp Pill, Network Pill, Find Phone, Lang -->
       <div class="flex items-center gap-2 sm:gap-3">
         <!-- Language Switcher (EN / TH) -->
         <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-1 shadow-inner">
@@ -283,6 +283,12 @@
           <span id="temp-text" class="font-mono font-semibold text-amber-400">36.00°C</span>
           <span class="text-slate-600">|</span>
           <span id="battery-state" class="text-[10px] text-emerald-400 font-semibold">USB</span>
+        </div>
+
+        <!-- Network Connection Status Pill (WiFi / Cellular / Offline) -->
+        <div id="net-status-pill" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-slate-200 shadow-sm" title="Network Connection Status">
+          <i id="net-icon" class="fa-solid fa-wifi text-emerald-400 text-xs"></i>
+          <span id="net-text" class="font-mono font-semibold text-slate-200">WiFi</span>
         </div>
 
         <!-- Battery Query Polling Interval Selector -->
@@ -368,6 +374,10 @@
       <button id="tab-btn-phone" onclick="switchTab('phone')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
         <i class="fa-solid fa-phone text-emerald-400"></i>
         <span data-i18n="tab_phone">Telephony</span>
+      </button>
+      <button id="tab-btn-log" onclick="switchTab('log')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
+        <i class="fa-solid fa-scroll text-rose-400"></i>
+        <span data-i18n="tab_log">Server Logs</span>
       </button>
     </div>
 
@@ -849,24 +859,38 @@
       </section>
     </div>
 
-    <!-- PERSISTENT SYSTEM LOG CONSOLE (VISIBLE AT THE BOTTOM OF EVERY TAB) -->
-    <section class="glass-panel rounded-3xl p-5 border border-slate-800 space-y-3">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-xl bg-slate-500/20 border border-slate-500/30 flex items-center justify-center">
-            <i class="fa-solid fa-terminal text-slate-400 text-xs"></i>
+    <!-- TAB 6: SERVER LOGS -->
+    <div id="tab-content-log" class="tab-page space-y-6 hidden">
+      <section class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-3 border-b border-slate-800/80 pb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center">
+              <i class="fa-solid fa-scroll text-rose-400 text-lg"></i>
+            </div>
+            <div>
+              <h3 data-i18n="log_title" class="font-display font-bold text-lg text-white">System Telemetry & Server Logs</h3>
+              <p data-i18n="log_sub" class="text-xs text-slate-400">Real-time execution logs from Termux server (Auto-refreshes every 1 min)</p>
+            </div>
           </div>
-          <h4 data-i18n="log_title" class="font-display font-bold text-sm text-white">System Telemetry & Real-Time Log Stream</h4>
-        </div>
-        <button onclick="clearTerminalLogs()" class="px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition">
-          <span data-i18n="clear_log_btn">Clear Logs</span>
-        </button>
-      </div>
 
-      <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 font-mono text-xs space-y-1.5 h-44 overflow-y-auto" id="terminal-log-stream">
-        <div class="text-slate-500">[SYSTEM] Termux Hub dashboard initialized. Connected to 127.0.0.1:8888. Engine: Google TTS.</div>
-      </div>
-    </section>
+          <div class="flex items-center gap-2">
+            <span id="log-last-refreshed" class="text-[11px] text-slate-400 font-mono">Refreshed: --:--:--</span>
+            <button onclick="fetchServerLogs()" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 hover:border-rose-500 text-slate-200 text-xs font-semibold flex items-center gap-2 transition shadow-sm">
+              <i class="fa-solid fa-rotate text-rose-400"></i>
+              <span data-i18n="refresh_log_btn">Refresh Logs</span>
+            </button>
+            <button onclick="clearTerminalLogs()" class="px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-800 hover:bg-slate-800 text-slate-400 text-xs font-semibold flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-trash-can text-slate-400"></i>
+              <span data-i18n="clear_log_btn">Clear Screen</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800/80 font-mono text-xs space-y-2 min-h-[400px] max-h-[600px] overflow-y-auto" id="terminal-log-stream">
+          <div class="text-slate-500">[SYSTEM] Server log stream initialized. Auto-refresh interval: 1 minute.</div>
+        </div>
+      </section>
+    </div>
 
   </main>
 
@@ -1061,22 +1085,29 @@
        TAB NAVIGATION
        ========================================================================= */
     function switchTab(tabId) {
-      const tabs = ['clock', 'intercom', 'gps', 'sos', 'phone'];
+      const tabs = ['clock', 'intercom', 'gps', 'sos', 'phone', 'log'];
       tabs.forEach(t => {
         const btn = document.getElementById(`tab-btn-${t}`);
         const content = document.getElementById(`tab-content-${t}`);
         if (t === tabId) {
-          btn.classList.add('active-tab');
-          btn.classList.remove('inactive-tab');
-          content.classList.remove('hidden');
+          if (btn) {
+            btn.classList.add('active-tab');
+            btn.classList.remove('inactive-tab');
+          }
+          if (content) content.classList.remove('hidden');
         } else {
-          btn.classList.remove('active-tab');
-          btn.classList.add('inactive-tab');
-          content.classList.add('hidden');
+          if (btn) {
+            btn.classList.remove('active-tab');
+            btn.classList.add('inactive-tab');
+          }
+          if (content) content.classList.add('hidden');
         }
       });
       if (tabId === 'gps' && map) {
         setTimeout(() => map.invalidateSize(), 200);
+      }
+      if (tabId === 'log') {
+        fetchServerLogs();
       }
     }
 
@@ -1110,6 +1141,7 @@
 
     function appendTerminalLog(tag, command, details = null) {
       const stream = document.getElementById('terminal-log-stream');
+      if (!stream) return;
       const time = new Date().toLocaleTimeString();
       const div = document.createElement('div');
       div.className = 'text-slate-300 border-l-2 border-slate-800 pl-2 py-0.5';
@@ -1120,8 +1152,87 @@
     }
 
     function clearTerminalLogs() {
-      document.getElementById('terminal-log-stream').innerHTML = '';
+      const stream = document.getElementById('terminal-log-stream');
+      if (stream) stream.innerHTML = '';
       showToast('Logs cleared', 'info');
+    }
+
+    async function fetchServerLogs() {
+      try {
+        const res = await fetch('/api/logs');
+        const data = await res.json();
+        if (data.success) {
+          const stream = document.getElementById('terminal-log-stream');
+          if (!stream) return;
+          stream.innerHTML = '';
+
+          if (data.logs && Array.isArray(data.logs)) {
+            data.logs.forEach(l => {
+              const div = document.createElement('div');
+              div.className = 'text-slate-300 border-l-2 border-rose-500/50 pl-2 py-0.5';
+              let detailsHtml = l.details ? `<pre class="text-[10px] text-slate-500 font-mono">${JSON.stringify(l.details)}</pre>` : '';
+              div.innerHTML = `<span class="text-slate-500">[${l.time || ''}]</span> <span class="text-rose-400 font-semibold">[${l.tag || 'SYS'}]</span> <span class="font-mono text-slate-200">${l.command || l.event || ''}</span>${detailsHtml}`;
+              stream.appendChild(div);
+            });
+          }
+
+          if (data.file_logs && Array.isArray(data.file_logs)) {
+            data.file_logs.forEach(line => {
+              const div = document.createElement('div');
+              div.className = 'text-slate-400 border-l-2 border-slate-800 pl-2 py-0.5 font-mono text-[11px]';
+              if (line.includes('[ERROR]')) div.className = 'text-rose-300 border-l-2 border-rose-500 pl-2 py-0.5 font-mono text-[11px] bg-rose-950/20';
+              else if (line.includes('[WARNING]')) div.className = 'text-amber-300 border-l-2 border-amber-500 pl-2 py-0.5 font-mono text-[11px]';
+              else if (line.includes('[INFO]')) div.className = 'text-slate-300 border-l-2 border-cyan-500/50 pl-2 py-0.5 font-mono text-[11px]';
+
+              div.textContent = line;
+              stream.appendChild(div);
+            });
+          }
+
+          stream.scrollTop = stream.scrollHeight;
+
+          const now = new Date();
+          const timeStr = now.toTimeString().split(' ')[0];
+          const refreshedEl = document.getElementById('log-last-refreshed');
+          if (refreshedEl) refreshedEl.textContent = `Refreshed: ${timeStr}`;
+        }
+      } catch (err) {
+        console.error('Fetch server logs error:', err);
+      }
+    }
+
+    function updateDeviceInfoUI(deviceInfo) {
+      if (!deviceInfo) return;
+      const el = document.getElementById('device-model-display');
+      if (el && deviceInfo.display_name) {
+        let name = deviceInfo.display_name.trim();
+        if (name.length > 20) name = name.substring(0, 17) + '...';
+        el.textContent = name;
+      }
+    }
+
+    function updateNetworkInfoUI(netInfo) {
+      if (!netInfo) return;
+      const icon = document.getElementById('net-icon');
+      const text = document.getElementById('net-text');
+      const pill = document.getElementById('net-status-pill');
+      if (!icon || !text || !pill) return;
+
+      if (netInfo.type === 'wifi') {
+        icon.className = "fa-solid fa-wifi text-emerald-400 text-xs";
+        let ssid = netInfo.ssid || 'WiFi';
+        if (ssid.length > 12) ssid = ssid.substring(0, 10) + '..';
+        text.textContent = ssid;
+        pill.title = `WiFi: ${netInfo.ssid} (${netInfo.rssi || 0} dBm${netInfo.speed_mbps ? ', ' + netInfo.speed_mbps + ' Mbps' : ''})`;
+      } else if (netInfo.type === 'cellular') {
+        icon.className = "fa-solid fa-signal text-cyan-400 text-xs";
+        text.textContent = "Cellular";
+        pill.title = "Cellular Mobile Data Active";
+      } else {
+        icon.className = "fa-solid fa-plane text-rose-400 text-xs";
+        text.textContent = "Offline";
+        pill.title = "Network Disconnected";
+      }
     }
 
     /* =========================================================================
@@ -1131,9 +1242,9 @@
 
     async function fetchBatteryStatus() {
       try {
-        const res = await fetch('/api/battery');
+        const res = await fetch('/api/status');
         const json = await res.json();
-        const data = json.data || json.battery || json;
+        const data = json.battery || json;
         if (data) {
           const pct = data.percentage !== undefined ? data.percentage : 100;
           const tempVal = data.temperature !== undefined ? parseFloat(data.temperature).toFixed(2) : '36.00';
@@ -1143,10 +1254,15 @@
           document.getElementById('battery-text').textContent = `${pct}%`;
           document.getElementById('temp-text').textContent = tempStr;
           document.getElementById('battery-state').textContent = plugged.replace('PLUGGED_', '');
-          document.getElementById('banner-desc').textContent = `Device active on Samsung S7 Edge. Battery: ${pct}%, Temp: ${tempStr} (${plugged}).`;
+        }
+        if (json.device_info) {
+          updateDeviceInfoUI(json.device_info);
+        }
+        if (json.network_info) {
+          updateNetworkInfoUI(json.network_info);
         }
       } catch (e) {
-        console.error('Error fetching battery status:', e);
+        console.error('Error fetching status:', e);
       }
     }
 
@@ -2306,6 +2422,7 @@
         "tab_gps": "GPS & Geofence",
         "tab_sos": "Device Help",
         "tab_phone": "Telephony",
+        "tab_log": "Server Logs",
 
         "clock_title": "Hourly Talking Clock",
         "clock_sub": "Automated hourly speech chimes powered by Google TTS",
@@ -2330,7 +2447,7 @@
         "add_routine_btn": "Add Scheduled Routine",
 
         "intercom_title": "Remote Intercom & Audio Broadcaster",
-        "intercom_sub": "Live voice drop-in (Google TTS) and custom MP3 file upload & management",
+        "intercom_sub": "Live voice drop-in (Google TTS / WebRTC) and custom MP3 file upload & management",
         "announcement_card_title": "Voice Intercom Announcement",
         "speech_lang_lbl": "Speech Language",
         "intercom_msg_lbl": "Intercom Voice Message",
@@ -2378,8 +2495,10 @@
         "sms_msg_lbl": "SMS Message",
         "send_sms_btn": "Send SMS Message",
 
-        "log_title": "System Telemetry & Real-Time Log Stream",
-        "clear_log_btn": "Clear Logs",
+        "log_title": "System Telemetry & Server Logs",
+        "log_sub": "Real-time execution logs from Termux server (Auto-refreshes every 1 min)",
+        "refresh_log_btn": "Refresh Logs",
+        "clear_log_btn": "Clear Screen",
 
         "contact_modal_add": "Add Whitelist Contact",
         "contact_modal_edit": "Edit Whitelist Contact",
@@ -2399,7 +2518,6 @@
       },
       th: {
         "persona_status": "คุณยายเอฟลิน (กำลังทำงาน)",
-        "persona_sub": "Samsung S7 Edge · ระบบ Termux:API · Google TTS · พอร์ต 8888",
         "find_phone": "ตามหาโทรศัพท์",
         "banner_title": "ระบบเฝ้าระวังความปลอดภัยทำงานอยู่",
         "banner_guard": "ระบบตรวจจับการไม่เคลื่อนไหวพร้อมทำงาน",
@@ -2410,6 +2528,7 @@
         "tab_gps": "ระบบ GPS & ขอบเขตปลอดภัย",
         "tab_sos": "ความช่วยเหลืออุปกรณ์",
         "tab_phone": "ระบบโทรศัพท์ & รายชื่อ",
+        "tab_log": "บันทึกระบบ (Logs)",
 
         "clock_title": "นาฬิกาบอกเวลารายชั่วโมง",
         "clock_sub": "เสียงพูดบอกเวลาทุกชั่วโมงอัตโนมัติด้วย Google TTS",
@@ -2482,8 +2601,10 @@
         "sms_msg_lbl": "ข้อความ SMS",
         "send_sms_btn": "ส่ง SMS ทันที",
 
-        "log_title": "ระบบบันทึกการทำงานและคำสั่งเรียลไทม์",
-        "clear_log_btn": "ล้างหน้าจอ log",
+        "log_title": "ระบบบันทึกคำสั่งและการทำงานของระบบ",
+        "log_sub": "บันทึกคำสั่งและการทำงานของระบบ Termux (รีเฟรชอัตโนมัติทุก 1 นาที)",
+        "refresh_log_btn": "รีเฟรช Log",
+        "clear_log_btn": "ล้างหน้าจอ Log",
 
         "contact_modal_add": "เพิ่มรายชื่อติดต่อ",
         "contact_modal_edit": "แก้ไขรายชื่อติดต่อ",
@@ -2533,8 +2654,8 @@
       loadAudioFileList();
       loadRoutinesList();
       loadContactsList();
-      pollBackendLogs();
-      setInterval(pollBackendLogs, 3000);
+      fetchServerLogs();
+      setInterval(fetchServerLogs, 60000);
     });
   </script>
 </body>
