@@ -33,10 +33,12 @@ HTML_FILE = os.path.join(BASE_DIR, "senior_caregiver_termux_hub.html")
 CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".config", "eldercare")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "settings.json")
 SOUNDS_DIR = os.path.join(CONFIG_DIR, "sounds")
+PHOTOS_DIR = os.path.join(CONFIG_DIR, "photos")
 CERT_FILE = os.path.join(CONFIG_DIR, "cert.pem")
 KEY_FILE = os.path.join(CONFIG_DIR, "key.pem")
 
 os.makedirs(SOUNDS_DIR, exist_ok=True)
+os.makedirs(PHOTOS_DIR, exist_ok=True)
 
 # Enforce Google Text-to-speech Engine System-Wide with Thai language
 GOOGLE_TTS_ENGINE = "com.google.android.tts"
@@ -1043,6 +1045,90 @@ def ensure_ssl_certs() -> bool:
     except Exception as e:
         logger.error(f"Error generating SSL certs: {e}")
     return False
+
+# ==============================================================================
+# Camera REST API Endpoints
+# ==============================================================================
+@app.route("/api/camera/info", methods=["GET"])
+def get_camera_info():
+    """Queries hardware camera specifications via termux-camera-info."""
+    res = run_termux_cmd(["termux-camera-info"], timeout=5)
+    if res.get("success") and res.get("data"):
+        return jsonify({"success": True, "cameras": res["data"]})
+    
+    if res.get("stdout"):
+        try:
+            cameras = json.loads(res["stdout"])
+            return jsonify({"success": True, "cameras": cameras})
+        except Exception:
+            pass
+            
+    return jsonify({"success": False, "error": res.get("stderr") or "Failed to query camera info"}), 500
+
+@app.route("/api/camera/snap", methods=["POST"])
+def capture_camera_photo():
+    """Captures a photo using termux-camera-photo for specified camera ID."""
+    data = request.json or {}
+    camera_id = str(data.get("camera_id", "0")).strip()
+    if camera_id not in ["0", "1"]:
+        camera_id = "0"
+        
+    filename = f"snap_cam{camera_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+    filepath = os.path.join(PHOTOS_DIR, filename)
+    
+    res = run_termux_cmd(["termux-camera-photo", "-c", camera_id, filepath], timeout=15)
+    
+    if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
+        log_system_event("CAMERA", f"Captured photo using camera {camera_id}: {filename}")
+        return jsonify({
+            "success": True,
+            "filename": filename,
+            "url": f"/api/camera/photo/{filename}",
+            "camera_id": camera_id,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
+        
+    return jsonify({
+        "success": False,
+        "error": res.get("stderr") or "Failed to capture photo (camera busy or permission denied)"
+    }), 500
+
+@app.route("/api/camera/photo/<filename>", methods=["GET"])
+def serve_camera_photo(filename):
+    """Serves captured camera photo file."""
+    safe_name = secure_filename(filename)
+    filepath = os.path.join(PHOTOS_DIR, safe_name)
+    if os.path.exists(filepath):
+        return send_file(filepath, mimetype="image/jpeg")
+    return "Photo not found", 404
+
+@app.route("/api/camera/photos", methods=["GET"])
+def list_camera_photos():
+    """Lists all captured camera photos sorted by newest first."""
+    photos = []
+    if os.path.exists(PHOTOS_DIR):
+        for f in sorted(os.listdir(PHOTOS_DIR), reverse=True):
+            if f.lower().endswith((".jpg", ".jpeg", ".png")):
+                f_path = os.path.join(PHOTOS_DIR, f)
+                stat = os.stat(f_path)
+                photos.append({
+                    "filename": f,
+                    "url": f"/api/camera/photo/{f}",
+                    "size_bytes": stat.st_size,
+                    "mtime": datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+                })
+    return jsonify({"success": True, "photos": photos})
+
+@app.route("/api/camera/photo/<filename>", methods=["DELETE"])
+def delete_camera_photo(filename):
+    """Deletes a captured camera photo."""
+    safe_name = secure_filename(filename)
+    filepath = os.path.join(PHOTOS_DIR, safe_name)
+    if os.path.exists(filepath):
+        os.remove(filepath)
+        log_system_event("CAMERA", f"Deleted photo: {safe_name}")
+        return jsonify({"success": True, "message": "Photo deleted successfully"})
+    return jsonify({"success": False, "error": "Photo not found"}), 404
 
 def run_http_server(host: str, port: int):
     try:

@@ -252,6 +252,20 @@
       border-color: #fecdd3 !important;
       color: #9f1239 !important;
     }
+
+    /* Light Theme Camera Component Overrides */
+    body.light-theme #camera-viewfinder-card {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.light-theme #viewfinder-box {
+      background-color: #f8fafc !important;
+      border-color: #cbd5e1 !important;
+    }
+    body.light-theme #camera-specs-container .glass-card {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased flex flex-col">
@@ -391,7 +405,7 @@
       </button>
       <button id="tab-btn-sos" onclick="switchTab('sos')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
         <i class="fa-solid fa-wrench text-amber-400"></i>
-        <span data-i18n="tab_sos">Device Help</span>
+        <span data-i18n="tab_sos">Device</span>
       </button>
       <button id="tab-btn-phone" onclick="switchTab('phone')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
         <i class="fa-solid fa-phone text-emerald-400"></i>
@@ -404,6 +418,10 @@
       <button id="tab-btn-system" onclick="switchTab('system')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
         <i class="fa-solid fa-gear text-indigo-400"></i>
         <span data-i18n="tab_system">System</span>
+      </button>
+      <button id="tab-btn-camera" onclick="switchTab('camera')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
+        <i class="fa-solid fa-camera text-sky-400"></i>
+        <span data-i18n="tab_camera">Camera</span>
       </button>
     </div>
 
@@ -993,6 +1011,120 @@
       </div>
     </div>
 
+    <!-- TAB 8: CAMERA CONTROLS & LIVE SNAPSHOT -->
+    <div id="tab-content-camera" class="tab-page space-y-6 hidden">
+      <!-- Top Title Banner -->
+      <section class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-3 border-b border-slate-800/80 pb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center">
+              <i class="fa-solid fa-camera text-sky-400 text-lg"></i>
+            </div>
+            <div>
+              <h3 data-i18n="camera_title" class="font-display font-bold text-lg text-white">Remote Camera & Live Snapshot</h3>
+              <p data-i18n="camera_sub" class="text-xs text-slate-400">Capture photos remotely using Android front & rear cameras</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="fetchCameraInfo()" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 hover:border-sky-500 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+              <i class="fa-solid fa-rotate text-sky-400"></i>
+              <span data-i18n="refresh_cam_info">Refresh Info</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Left Column: Camera Trigger & Live Viewfinder (7 cols) -->
+          <div class="lg:col-span-7 space-y-4">
+            <div id="camera-viewfinder-card" class="bg-slate-900/90 rounded-2xl border border-slate-800 p-4 space-y-4 relative overflow-hidden shadow-xl">
+              <!-- Controls Bar -->
+              <div class="flex items-center justify-between flex-wrap gap-3">
+                <div class="flex items-center gap-2">
+                  <label class="text-xs font-semibold text-slate-300">Select Camera:</label>
+                  <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <button id="cam-select-rear" onclick="setSelectCamera('0')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-white transition flex items-center gap-1.5">
+                      <i class="fa-solid fa-camera"></i> Rear (ID: 0)
+                    </button>
+                    <button id="cam-select-front" onclick="setSelectCamera('1')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                      <i class="fa-solid fa-user"></i> Front (ID: 1)
+                    </button>
+                  </div>
+                </div>
+
+                <button id="snap-photo-btn" onclick="takeCameraPhoto()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold text-xs shadow-lg shadow-sky-500/20 transition transform active:scale-95 flex items-center gap-2">
+                  <i class="fa-solid fa-circle-dot"></i>
+                  <span data-i18n="take_photo_btn">Take Photo Now</span>
+                </button>
+              </div>
+
+              <!-- Viewfinder Container with SVG Corner Crosshairs -->
+              <div id="viewfinder-box" class="relative bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden min-h-[300px] flex items-center justify-center text-center p-2 group">
+                <!-- SVG Target Reticle Overlay -->
+                <div class="absolute inset-0 pointer-events-none p-4 flex flex-col justify-between">
+                  <div class="flex justify-between">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5"><path d="M2 9V3h6M16 3h6v6"/></svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5"><path d="M16 3h6v6M22 15v6h-6"/></svg>
+                  </div>
+                  <div class="flex justify-between">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5"><path d="M8 21H2v-6M2 15V9"/></svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5"><path d="M22 15v6h-6M16 21h6"/></svg>
+                  </div>
+                </div>
+
+                <!-- Shutter Flash Effect Overlay -->
+                <div id="shutter-flash" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-150 z-20"></div>
+
+                <!-- Default Placeholder or Live Image -->
+                <div id="photo-placeholder" class="space-y-3 p-6 text-slate-500">
+                  <div class="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto">
+                    <i class="fa-solid fa-camera-retro text-2xl text-slate-600"></i>
+                  </div>
+                  <p class="text-xs">No snapshot captured yet. Click "Take Photo Now" to capture live view.</p>
+                </div>
+
+                <img id="live-photo-img" src="" alt="Live Camera Snapshot" class="hidden w-full h-auto max-h-[450px] object-contain rounded-xl border border-slate-800/80 shadow-md">
+
+                <!-- Live Photo Action Overlay Pill -->
+                <div id="photo-info-bar" class="hidden absolute bottom-3 left-3 right-3 bg-slate-950/80 backdrop-blur-md p-2.5 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs">
+                  <span id="photo-timestamp" class="text-slate-300 font-mono text-[11px]"><i class="fa-solid fa-clock text-sky-400 mr-1"></i>--</span>
+                  <div class="flex gap-2">
+                    <a id="photo-download-link" href="#" target="_blank" download class="px-2.5 py-1 rounded-lg bg-sky-950 border border-sky-800 text-sky-300 hover:bg-sky-900 text-[11px] transition">
+                      <i class="fa-solid fa-download mr-1"></i> Full Size
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Hardware Camera Specs (5 cols) -->
+          <div class="lg:col-span-5 space-y-4">
+            <h4 class="font-semibold text-slate-200 text-xs flex items-center gap-2">
+              <i class="fa-solid fa-microchip text-sky-400"></i> Hardware Camera Specifications
+            </h4>
+            <div id="camera-specs-container" class="space-y-3">
+              <div class="text-xs text-slate-500 p-4 bg-slate-950 rounded-xl border border-slate-800">Querying termux-camera-info...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Gallery Section -->
+        <div class="border-t border-slate-800/80 pt-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="font-semibold text-slate-200 text-xs flex items-center gap-2">
+              <i class="fa-solid fa-images text-sky-400"></i> Captured Photo History
+            </h4>
+            <button onclick="loadCameraPhotos()" class="text-xs text-slate-400 hover:text-sky-400 transition">
+              <i class="fa-solid fa-rotate mr-1"></i> Refresh Gallery
+            </button>
+          </div>
+          <div id="photo-gallery-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+            <div class="text-xs text-slate-500 col-span-full py-4 text-center">No saved photos.</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
   </main>
 
   <!-- Contact Add/Edit Modal -->
@@ -1374,7 +1506,7 @@
        TAB NAVIGATION
        ========================================================================= */
     function switchTab(tabId) {
-      const tabs = ['clock', 'intercom', 'gps', 'sos', 'phone', 'log', 'system'];
+      const tabs = ['clock', 'intercom', 'gps', 'sos', 'phone', 'log', 'system', 'camera'];
       tabs.forEach(t => {
         const btn = document.getElementById(`tab-btn-${t}`);
         const content = document.getElementById(`tab-content-${t}`);
@@ -1397,6 +1529,183 @@
       }
       if (tabId === 'log') {
         fetchServerLogs();
+      }
+      if (tabId === 'camera') {
+        fetchCameraInfo();
+        loadCameraPhotos();
+      }
+    }
+
+    /* =========================================================================
+       CAMERA CONTROLS & PHOTO CAPTURE
+       ========================================================================= */
+    let selectedCameraId = '0';
+
+    function setSelectCamera(camId) {
+      selectedCameraId = camId;
+      const btnRear = document.getElementById('cam-select-rear');
+      const btnFront = document.getElementById('cam-select-front');
+      if (camId === '0') {
+        if (btnRear) btnRear.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-white transition flex items-center gap-1.5';
+        if (btnFront) btnFront.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5';
+      } else {
+        if (btnFront) btnFront.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-white transition flex items-center gap-1.5';
+        if (btnRear) btnRear.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5';
+      }
+    }
+
+    async function fetchCameraInfo() {
+      const container = document.getElementById('camera-specs-container');
+      if (!container) return;
+      try {
+        const res = await fetch('/api/camera/info');
+        const json = await res.json();
+        if (json.success && Array.isArray(json.cameras)) {
+          let html = '';
+          json.cameras.forEach(cam => {
+            const isRear = cam.facing === 'back' || cam.id === '0';
+            const iconClass = isRear ? 'fa-camera text-sky-400' : 'fa-user text-violet-400';
+            const title = isRear ? 'Rear Camera (Back)' : 'Front Camera (Selfie)';
+            const maxRes = (cam.jpeg_output_sizes && cam.jpeg_output_sizes.length > 0)
+              ? `${cam.jpeg_output_sizes[0].width} × ${cam.jpeg_output_sizes[0].height}`
+              : 'Unknown';
+            const focal = (cam.focal_lengths && cam.focal_lengths.length > 0)
+              ? `${cam.focal_lengths[0].toFixed(2)} mm`
+              : 'N/A';
+            const phys = cam.physical_size
+              ? `${cam.physical_size.width.toFixed(2)} × ${cam.physical_size.height.toFixed(2)} mm`
+              : 'N/A';
+
+            html += `
+              <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2 text-xs shadow-md">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div class="font-bold text-slate-100 flex items-center gap-2">
+                    <i class="fa-solid ${iconClass}"></i> ${title} (ID: ${cam.id})
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-sky-950 text-sky-300 border border-sky-800">${maxRes}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                  <div><span class="text-slate-400">Focal Length:</span> <span class="text-slate-200 font-mono">${focal}</span></div>
+                  <div><span class="text-slate-400">Sensor Size:</span> <span class="text-slate-200 font-mono">${phys}</span></div>
+                </div>
+                ${cam.capabilities ? `
+                  <div class="pt-1 flex flex-wrap gap-1">
+                    ${cam.capabilities.slice(0, 4).map(cap => `<span class="px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 text-[10px] border border-slate-800">${cap}</span>`).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          });
+          container.innerHTML = html;
+        } else {
+          container.innerHTML = `<div class="text-xs text-rose-400 p-3 bg-rose-950/40 rounded-xl border border-rose-800/40">${json.error || 'Failed to query camera info'}</div>`;
+        }
+      } catch (e) {
+        container.innerHTML = `<div class="text-xs text-rose-400 p-3 bg-rose-950/40 rounded-xl border border-rose-800/40">Error loading camera info: ${e.message}</div>`;
+      }
+    }
+
+    async function takeCameraPhoto() {
+      const btn = document.getElementById('snap-photo-btn');
+      const flash = document.getElementById('shutter-flash');
+      const img = document.getElementById('live-photo-img');
+      const placeholder = document.getElementById('photo-placeholder');
+      const infoBar = document.getElementById('photo-info-bar');
+      const timestampElem = document.getElementById('photo-timestamp');
+      const downloadLink = document.getElementById('photo-download-link');
+
+      if (btn) btn.disabled = true;
+
+      if (typeof appendTerminalLog === 'function') {
+        appendTerminalLog('CAMERA', `Capturing snapshot using camera ${selectedCameraId}...`);
+      }
+      showToast(`Capturing photo using ${selectedCameraId === '0' ? 'Rear' : 'Front'} Camera...`, 'info');
+
+      try {
+        const res = await fetch('/api/camera/snap', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ camera_id: selectedCameraId })
+        });
+        const json = await res.json();
+        if (json.success) {
+          if (flash) {
+            flash.style.opacity = '0.9';
+            setTimeout(() => { flash.style.opacity = '0'; }, 150);
+          }
+
+          if (placeholder) placeholder.classList.add('hidden');
+          if (img) {
+            img.src = `${json.url}?t=${Date.now()}`;
+            img.classList.remove('hidden');
+          }
+          if (infoBar) infoBar.classList.remove('hidden');
+          if (timestampElem) timestampElem.textContent = `${json.timestamp} (Cam ${json.camera_id})`;
+          if (downloadLink) downloadLink.href = json.url;
+
+          showToast('Photo captured successfully!', 'success');
+          loadCameraPhotos();
+        } else {
+          showToast(`Camera error: ${json.error || 'Failed to capture photo'}`, 'danger');
+        }
+      } catch (e) {
+        showToast(`Network error: ${e.message}`, 'danger');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function loadCameraPhotos() {
+      const grid = document.getElementById('photo-gallery-grid');
+      if (!grid) return;
+
+      try {
+        const res = await fetch('/api/camera/photos');
+        const json = await res.json();
+
+        if (json.success && Array.isArray(json.photos) && json.photos.length > 0) {
+          let html = '';
+          json.photos.forEach(photo => {
+            html += `
+              <div class="group relative bg-slate-900 rounded-xl overflow-hidden border border-slate-800 shadow-md transition hover:border-sky-500">
+                <img src="${photo.url}" alt="${photo.filename}" class="w-full h-24 object-cover">
+                <div class="absolute inset-0 bg-slate-950/70 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2 p-1">
+                  <a href="${photo.url}" target="_blank" title="View Full Image" class="w-7 h-7 rounded-lg bg-sky-600 text-white flex items-center justify-center text-xs hover:bg-sky-500 transition">
+                    <i class="fa-solid fa-expand"></i>
+                  </a>
+                  <button onclick="deleteCameraPhoto('${photo.filename}')" title="Delete Photo" class="w-7 h-7 rounded-lg bg-rose-600 text-white flex items-center justify-center text-xs hover:bg-rose-500 transition">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
+                <div class="p-1.5 text-[10px] text-slate-400 font-mono truncate bg-slate-950/80 border-t border-slate-800/60 flex justify-between items-center">
+                  <span class="truncate">${photo.mtime.split(' ')[1] || ''}</span>
+                  <span class="text-[9px] text-slate-500">${(photo.size_bytes / 1024).toFixed(0)}KB</span>
+                </div>
+              </div>
+            `;
+          });
+          grid.innerHTML = html;
+        } else {
+          grid.innerHTML = `<div class="text-xs text-slate-500 col-span-full py-4 text-center">No saved photos.</div>`;
+        }
+      } catch (e) {
+        grid.innerHTML = `<div class="text-xs text-rose-400 col-span-full py-4 text-center">Error loading photos: ${e.message}</div>`;
+      }
+    }
+
+    async function deleteCameraPhoto(filename) {
+      if (!confirm(`Are you sure you want to delete ${filename}?`)) return;
+      try {
+        const res = await fetch(`/api/camera/photo/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+        const json = await res.json();
+        if (json.success) {
+          showToast('Photo deleted', 'info');
+          loadCameraPhotos();
+        } else {
+          showToast(json.error || 'Failed to delete photo', 'danger');
+        }
+      } catch (e) {
+        showToast(`Error: ${e.message}`, 'danger');
       }
     }
 
@@ -1549,6 +1858,9 @@
         }
         if (json.network_info) {
           updateNetworkInfoUI(json.network_info);
+        }
+        if (json.phone_name) {
+          updatePhoneNameUI(json.phone_name);
         }
       } catch (e) {
         console.error('Error fetching status:', e);
@@ -2709,10 +3021,16 @@
         "tab_clock": "Talking Clock & Routines",
         "tab_intercom": "Intercom & Audio",
         "tab_gps": "GPS & Geofence",
-        "tab_sos": "Device Help",
+        "tab_sos": "Device",
         "tab_phone": "Telephony",
         "tab_log": "Server Logs",
         "tab_system": "System",
+        "tab_camera": "Camera",
+
+        "camera_title": "Remote Camera & Live Snapshot",
+        "camera_sub": "Capture photos remotely using Android front & rear cameras",
+        "refresh_cam_info": "Refresh Info",
+        "take_photo_btn": "Take Photo Now",
 
         "change_pw_title": "Change Admin Password",
         "change_pw_sub": "Update credentials used to access the caregiver dashboard",
@@ -2828,10 +3146,16 @@
         "tab_clock": "นาฬิกาบอกเวลา & กิจวัตรประจำวัน",
         "tab_intercom": "ระบบสื่อสารเสียง & เสียงเพลง",
         "tab_gps": "ระบบ GPS & ขอบเขตปลอดภัย",
-        "tab_sos": "ความช่วยเหลืออุปกรณ์",
+        "tab_sos": "อุปกรณ์",
         "tab_phone": "ระบบโทรศัพท์ & รายชื่อ",
         "tab_log": "บันทึกระบบ (Logs)",
         "tab_system": "ระบบ & รหัสผ่าน",
+        "tab_camera": "กล้องถ่ายรูป",
+
+        "camera_title": "กล้องถ่ายรูป & รูปภาพสด",
+        "camera_sub": "ถ่ายรูปจากกล้องหน้าและกล้องหลังของสมาร์ทโฟนทางไกล",
+        "refresh_cam_info": "รีเฟรชข้อมูลกล้อง",
+        "take_photo_btn": "ถ่ายรูปทันที",
 
         "change_pw_title": "เปลี่ยนรหัสผ่านผู้ดูแล (Admin)",
         "change_pw_sub": "อัปเดตรหัสผ่านสำหรับเข้าใช้งานแดชบอร์ด Caregiver",
@@ -2973,6 +3297,8 @@
         loadRoutinesList();
         loadContactsList();
         fetchServerLogs();
+        fetchCameraInfo();
+        loadCameraPhotos();
         setInterval(fetchServerLogs, 60000);
       }
     });
