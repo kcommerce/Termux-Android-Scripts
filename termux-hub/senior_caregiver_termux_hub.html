@@ -230,6 +230,28 @@
     body.light-theme #gps-fix-time {
       color: #1e293b !important;
     }
+
+    /* Light Theme WebRTC Intercom Live Voice Area Overrides */
+    body.light-theme #webrtc-card {
+      background: linear-gradient(135deg, rgba(255, 241, 242, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%) !important;
+      border-color: #fecdd3 !important;
+      box-shadow: 0 4px 15px rgba(225, 29, 72, 0.08) !important;
+    }
+    body.light-theme #webrtc-talk-box {
+      background-color: #fff1f2 !important;
+      border-color: #fecdd3 !important;
+    }
+    body.light-theme #webrtc-status-text {
+      color: #9f1239 !important;
+    }
+    body.light-theme #webrtc-hint {
+      color: #be123c !important;
+    }
+    body.light-theme #webrtc-protocol-badge {
+      background-color: #ffffff !important;
+      border-color: #fecdd3 !important;
+      color: #9f1239 !important;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased flex flex-col">
@@ -378,6 +400,10 @@
       <button id="tab-btn-log" onclick="switchTab('log')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
         <i class="fa-solid fa-scroll text-rose-400"></i>
         <span data-i18n="tab_log">Server Logs</span>
+      </button>
+      <button id="tab-btn-system" onclick="switchTab('system')" class="tab-btn inactive-tab px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all">
+        <i class="fa-solid fa-gear text-indigo-400"></i>
+        <span data-i18n="tab_system">System</span>
       </button>
     </div>
 
@@ -543,7 +569,7 @@
 
         <div class="space-y-6 flex flex-col text-xs">
           <!-- 1. WebRTC Live Intercom Walkie-Talkie Card (Top) -->
-          <div class="glass-card p-6 rounded-2xl border border-rose-500/30 bg-gradient-to-br from-rose-950/20 via-slate-900/80 to-slate-900 space-y-4 text-xs shadow-xl relative overflow-hidden">
+          <div id="webrtc-card" class="glass-card p-6 rounded-2xl border border-rose-500/30 bg-gradient-to-br from-rose-950/20 via-slate-900/80 to-slate-900 space-y-4 text-xs shadow-xl relative overflow-hidden">
             <div class="flex items-center justify-between flex-wrap gap-2">
               <div class="flex items-center gap-2.5">
                 <div class="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center">
@@ -561,7 +587,7 @@
               </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-slate-950/70 border border-slate-800/80">
+            <div id="webrtc-talk-box" class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-slate-950/70 border border-slate-800/80">
               <!-- Left: Mic Status & Live Audio Meter -->
               <div class="space-y-1 text-center sm:text-left">
                 <div id="webrtc-status-text" data-i18n="webrtc_status_idle" class="font-medium text-slate-300 text-xs flex items-center justify-center sm:justify-start gap-2">
@@ -892,6 +918,81 @@
       </section>
     </div>
 
+    <!-- TAB 7: SYSTEM & SECURITY -->
+    <div id="tab-content-system" class="tab-page space-y-6 hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Change Password Card -->
+        <section class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-4">
+          <div class="flex items-center gap-3 border-b border-slate-800/80 pb-4">
+            <div class="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center">
+              <i class="fa-solid fa-key text-indigo-400 text-lg"></i>
+            </div>
+            <div>
+              <h3 data-i18n="change_pw_title" class="font-display font-bold text-lg text-white">Change Admin Password</h3>
+              <p data-i18n="change_pw_sub" class="text-xs text-slate-400">Update credentials used to access the caregiver dashboard</p>
+            </div>
+          </div>
+
+          <form onsubmit="event.preventDefault(); changeAdminPassword();" class="space-y-4">
+            <div>
+              <label data-i18n="old_pw_lbl" class="block text-slate-300 text-xs font-medium mb-1">Current Password</label>
+              <input type="password" id="sys-old-pass" required placeholder="Current password" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label data-i18n="new_pw_lbl" class="block text-slate-300 text-xs font-medium mb-1">New Password</label>
+              <input type="password" id="sys-new-pass" required placeholder="New password (min 3 chars)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label data-i18n="confirm_pw_lbl" class="block text-slate-300 text-xs font-medium mb-1">Confirm New Password</label>
+              <input type="password" id="sys-confirm-pass" required placeholder="Confirm new password" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+            </div>
+
+            <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold text-xs shadow-md shadow-indigo-500/20 transition active:scale-95 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span data-i18n="update_pw_btn">Update Password</span>
+            </button>
+          </form>
+        </section>
+
+        <!-- System Status & Account Card -->
+        <section class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-4 flex flex-col justify-between">
+          <div class="space-y-4">
+            <div class="flex items-center gap-3 border-b border-slate-800/80 pb-4">
+              <div class="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
+                <i class="fa-solid fa-user-shield text-emerald-400 text-lg"></i>
+              </div>
+              <div>
+                <h3 data-i18n="account_info_title" class="font-display font-bold text-lg text-white">System Account & Security</h3>
+                <p data-i18n="account_info_sub" class="text-xs text-slate-400">Manage dashboard session and security settings</p>
+              </div>
+            </div>
+
+            <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 space-y-3 text-xs">
+              <div class="flex justify-between items-center">
+                <span data-i18n="active_user_lbl" class="text-slate-400">Active User:</span>
+                <span id="sys-username-display" class="font-bold text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-800/40">admin</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span data-i18n="default_creds_lbl" class="text-slate-400">Default Credentials:</span>
+                <span class="font-mono text-slate-300">admin / admin123</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span data-i18n="auth_status_lbl" class="text-slate-400">Authentication Mode:</span>
+                <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-shield-halved mr-1"></i> Session Protected</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-slate-800/80">
+            <button onclick="logoutUser()" class="w-full py-3 rounded-xl bg-slate-900 border border-slate-700 hover:bg-rose-950/40 hover:border-rose-500/50 hover:text-rose-300 text-slate-300 font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-right-from-bracket text-rose-400"></i>
+              <span data-i18n="sign_out_btn">Sign Out</span>
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+
   </main>
 
   <!-- Contact Add/Edit Modal -->
@@ -1020,7 +1121,195 @@
   <!-- Toast Notification Container -->
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
+  <!-- FULL SCREEN AUTHENTICATION / LOGIN OVERLAY -->
+  <div id="login-overlay" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel max-w-md w-full p-8 rounded-3xl border border-rose-500/40 space-y-6 shadow-2xl relative overflow-hidden">
+      <div class="text-center space-y-2">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-500/20 to-violet-500/20 border border-rose-500/30 flex items-center justify-center mx-auto mb-3">
+          <i class="fa-solid fa-user-lock text-rose-400 text-2xl"></i>
+        </div>
+        <h2 class="font-display font-bold text-xl text-white">Termux Hub Login</h2>
+        <p class="text-xs text-slate-400">Enter your credentials to access the Caregiver Dashboard</p>
+      </div>
+
+      <form onsubmit="event.preventDefault(); submitLogin();" class="space-y-4">
+        <div>
+          <label class="block text-slate-300 text-xs font-medium mb-1">Username</label>
+          <div class="relative">
+            <i class="fa-solid fa-user absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+            <input type="text" id="login-username" required placeholder="admin" value="admin" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-rose-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 text-xs font-medium mb-1">Password</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+            <input type="password" id="login-password" required placeholder="••••••••" value="admin123" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-rose-500">
+          </div>
+        </div>
+
+        <div id="login-error-msg" class="hidden text-xs text-rose-400 font-semibold text-center bg-rose-950/40 border border-rose-800/40 p-2.5 rounded-xl"></div>
+
+        <button type="submit" id="login-submit-btn" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-rose-500 via-rose-600 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white font-bold text-xs shadow-lg shadow-rose-500/25 transition transform active:scale-95 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span>Sign In</span>
+        </button>
+      </form>
+      <p class="text-[11px] text-slate-500 text-center">Default: <span class="font-mono text-slate-400">admin / admin123</span></p>
+    </div>
+  </div>
+
   <script>
+    /* =========================================================================
+       GLOBAL AUTHENTICATION & FETCH INTERCEPTOR
+       ========================================================================= */
+    const originalFetch = window.fetch;
+    window.fetch = async function(...args) {
+      const response = await originalFetch.apply(this, args);
+      if (response.status === 401) {
+        const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url);
+        if (url && !url.includes('/api/login') && !url.includes('/api/auth-check')) {
+          showLoginOverlay();
+        }
+      }
+      return response;
+    };
+
+    function showLoginOverlay() {
+      const overlay = document.getElementById('login-overlay');
+      if (overlay) {
+        overlay.classList.remove('hidden');
+      }
+    }
+
+    function hideLoginOverlay() {
+      const overlay = document.getElementById('login-overlay');
+      if (overlay) {
+        overlay.classList.add('hidden');
+      }
+    }
+
+    async function checkAuthStatus() {
+      try {
+        const res = await fetch('/api/auth-check');
+        const data = await res.json();
+        if (data.authenticated) {
+          hideLoginOverlay();
+          if (data.user) {
+            const userDisp = document.getElementById('sys-username-display');
+            if (userDisp) userDisp.textContent = data.user;
+          }
+          return true;
+        } else {
+          showLoginOverlay();
+          return false;
+        }
+      } catch (err) {
+        console.error('Auth check error:', err);
+        showLoginOverlay();
+        return false;
+      }
+    }
+
+    async function submitLogin() {
+      const uInput = document.getElementById('login-username');
+      const pInput = document.getElementById('login-password');
+      const errBox = document.getElementById('login-error-msg');
+      const submitBtn = document.getElementById('login-submit-btn');
+
+      const username = uInput ? uInput.value.trim() : '';
+      const password = pInput ? pInput.value.trim() : '';
+
+      if (!username || !password) {
+        if (errBox) {
+          errBox.textContent = 'Please enter username and password';
+          errBox.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (submitBtn) submitBtn.disabled = true;
+      if (errBox) errBox.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          hideLoginOverlay();
+          showToast(`Welcome back, ${data.user || username}!`, 'success');
+          const userDisp = document.getElementById('sys-username-display');
+          if (userDisp) userDisp.textContent = data.user || username;
+          if (typeof refreshAllTelemetry === 'function') refreshAllTelemetry();
+        } else {
+          if (errBox) {
+            errBox.textContent = data.error || 'Invalid username or password';
+            errBox.classList.remove('hidden');
+          }
+        }
+      } catch (e) {
+        if (errBox) {
+          errBox.textContent = 'Network error during login';
+          errBox.classList.remove('hidden');
+        }
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    }
+
+    async function logoutUser() {
+      try {
+        await fetch('/api/logout', { method: 'POST' });
+        showToast('Logged out successfully', 'info');
+        showLoginOverlay();
+      } catch (e) {
+        showLoginOverlay();
+      }
+    }
+
+    async function changeAdminPassword() {
+      const oldPw = document.getElementById('sys-old-pass').value.trim();
+      const newPw = document.getElementById('sys-new-pass').value.trim();
+      const confirmPw = document.getElementById('sys-confirm-pass').value.trim();
+
+      if (!oldPw || !newPw) {
+        showToast('Please fill in all password fields', 'warning');
+        return;
+      }
+
+      if (newPw !== confirmPw) {
+        showToast('New passwords do not match!', 'danger');
+        return;
+      }
+
+      if (newPw.length < 3) {
+        showToast('New password must be at least 3 characters long', 'warning');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ old_password: oldPw, new_password: newPw })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('Password updated successfully!', 'success');
+          document.getElementById('sys-old-pass').value = '';
+          document.getElementById('sys-new-pass').value = '';
+          document.getElementById('sys-confirm-pass').value = '';
+        } else {
+          showToast(`Error: ${data.error || 'Failed to update password'}`, 'danger');
+        }
+      } catch (e) {
+        showToast(`Network error: ${e.message}`, 'danger');
+      }
+    }
     let currentLang = 'en';
     let currentPhoneName = 'Grandma Evelyn';
     let map = null;
@@ -1085,7 +1374,7 @@
        TAB NAVIGATION
        ========================================================================= */
     function switchTab(tabId) {
-      const tabs = ['clock', 'intercom', 'gps', 'sos', 'phone', 'log'];
+      const tabs = ['clock', 'intercom', 'gps', 'sos', 'phone', 'log', 'system'];
       tabs.forEach(t => {
         const btn = document.getElementById(`tab-btn-${t}`);
         const content = document.getElementById(`tab-content-${t}`);
@@ -2423,7 +2712,20 @@
         "tab_sos": "Device Help",
         "tab_phone": "Telephony",
         "tab_log": "Server Logs",
+        "tab_system": "System",
 
+        "change_pw_title": "Change Admin Password",
+        "change_pw_sub": "Update credentials used to access the caregiver dashboard",
+        "old_pw_lbl": "Current Password",
+        "new_pw_lbl": "New Password",
+        "confirm_pw_lbl": "Confirm New Password",
+        "update_pw_btn": "Update Password",
+        "account_info_title": "System Account & Security",
+        "account_info_sub": "Manage dashboard session and security settings",
+        "active_user_lbl": "Active User:",
+        "default_creds_lbl": "Default Credentials:",
+        "auth_status_lbl": "Authentication Mode:",
+        "sign_out_btn": "Sign Out",
         "clock_title": "Hourly Talking Clock",
         "clock_sub": "Automated hourly speech chimes powered by Google TTS",
         "chime_window": "Chime Active Window",
@@ -2529,7 +2831,20 @@
         "tab_sos": "ความช่วยเหลืออุปกรณ์",
         "tab_phone": "ระบบโทรศัพท์ & รายชื่อ",
         "tab_log": "บันทึกระบบ (Logs)",
+        "tab_system": "ระบบ & รหัสผ่าน",
 
+        "change_pw_title": "เปลี่ยนรหัสผ่านผู้ดูแล (Admin)",
+        "change_pw_sub": "อัปเดตรหัสผ่านสำหรับเข้าใช้งานแดชบอร์ด Caregiver",
+        "old_pw_lbl": "รหัสผ่านปัจจุบัน",
+        "new_pw_lbl": "รหัสผ่านใหม่",
+        "confirm_pw_lbl": "ยืนยันรหัสผ่านใหม่",
+        "update_pw_btn": "บันทึกเปลี่ยนรหัสผ่าน",
+        "account_info_title": "ข้อมูลบัญชี & ความปลอดภัยระบบ",
+        "account_info_sub": "จัดการเซสชันการเข้าใช้งานและการรักษาความปลอดภัย",
+        "active_user_lbl": "ผู้ใช้งานปัจจุบัน:",
+        "default_creds_lbl": "รหัสผ่านเริ่มต้น:",
+        "auth_status_lbl": "สถานะการยื่นยันตัวตน:",
+        "sign_out_btn": "ออกจากระบบ (Sign Out)",
         "clock_title": "นาฬิกาบอกเวลารายชั่วโมง",
         "clock_sub": "เสียงพูดบอกเวลาทุกชั่วโมงอัตโนมัติด้วย Google TTS",
         "chime_window": "ช่วงเวลาเปิดใช้งานเสียงบอกเวลา",
@@ -2642,20 +2957,24 @@
       });
     }
 
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
       initTheme();
       const savedLang = localStorage.getItem('caregiver_lang') || 'en';
       setLanguage(savedLang);
       checkWebRTCProtocolSupport();
-      initMap();
-      locateSeniorNow();
-      initBatteryPolling();
-      loadClockSettings();
-      loadAudioFileList();
-      loadRoutinesList();
-      loadContactsList();
-      fetchServerLogs();
-      setInterval(fetchServerLogs, 60000);
+
+      const isAuthenticated = await checkAuthStatus();
+      if (isAuthenticated) {
+        initMap();
+        locateSeniorNow();
+        initBatteryPolling();
+        loadClockSettings();
+        loadAudioFileList();
+        loadRoutinesList();
+        loadContactsList();
+        fetchServerLogs();
+        setInterval(fetchServerLogs, 60000);
+      }
     });
   </script>
 </body>

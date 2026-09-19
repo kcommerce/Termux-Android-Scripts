@@ -18,7 +18,7 @@ from datetime import datetime
 import shutil
 from typing import Dict, Any, Optional, List
 
-from flask import Flask, request, jsonify, send_file, send_from_directory
+from flask import Flask, request, jsonify, send_file, send_from_directory, session
 from werkzeug.utils import secure_filename
 
 # Configure Logging
@@ -43,6 +43,21 @@ GOOGLE_TTS_ENGINE = "com.google.android.tts"
 DEFAULT_TTS_LANG = "th"
 
 app = Flask(__name__, static_folder=BASE_DIR)
+app.secret_key = "termux_hub_admin_secret_key_2026"
+
+@app.before_request
+def require_authentication():
+    if request.method == "OPTIONS":
+        return None
+
+    path = request.path
+    if path in ["/", "/index.html", "/favicon.ico", "/api/login", "/api/auth-check"]:
+        return None
+    if not path.startswith("/api/"):
+        return None
+
+    if not session.get("user"):
+        return jsonify({"success": False, "error": "Unauthorized. Please log in.", "auth_required": True}), 401
 
 # Enable CORS for all routes manually
 @app.after_request
@@ -181,7 +196,11 @@ hub_state = {
         {"id": "c2", "name": "Sarah (Daughter)", "phone": "+66898765432"}
     ],
     "find_phone_message": "โทรศัพท์อยู่ที่ไหน ฉันกำลังตามหาอยู่ โทรศัพท์อยู่ที่ไหน ฉันกำลังตามหาอยู่",
-    "phone_name": "Grandma Evelyn"
+    "phone_name": "Grandma Evelyn",
+    "auth": {
+        "username": "admin",
+        "password": "admin123"
+    }
 }
 
 def format_battery_data(raw_data: Any) -> Dict[str, Any]:
@@ -209,9 +228,12 @@ def load_settings():
                 hub_state.update(saved)
                 hub_state["clock_settings"]["engine"] = GOOGLE_TTS_ENGINE
                 hub_state["clock_settings"]["language"] = DEFAULT_TTS_LANG
+                hub_state.setdefault("auth", {"username": "admin", "password": "admin123"})
                 logger.info("Loaded settings from config file.")
         except Exception as e:
             logger.error(f"Error reading config: {e}")
+    else:
+        hub_state.setdefault("auth", {"username": "admin", "password": "admin123"})
 
 def save_settings():
     os.makedirs(CONFIG_DIR, exist_ok=True)
@@ -223,7 +245,7 @@ def save_settings():
         logger.error(f"Error saving config: {e}")
 
 # ==============================================================================
-# Routes: Web Dashboard & Options Pre-flight
+# Routes: Web Dashboard & Options Pre-flight & Authentication
 # ==============================================================================
 @app.route("/", methods=["GET"])
 def get_dashboard():
@@ -235,6 +257,52 @@ def get_dashboard():
 @app.route("/<path:path>", methods=["OPTIONS"])
 def handle_options(path):
     return "", 200
+
+@app.route("/api/auth-check", methods=["GET"])
+def check_auth_status():
+    user = session.get("user")
+    if user:
+        return jsonify({"authenticated": True, "user": user})
+    return jsonify({"authenticated": False})
+
+@app.route("/api/login", methods=["POST"])
+def login_route():
+    data = request.json or {}
+    username = data.get("username", "").strip()
+    password = data.get("password", "").strip()
+
+    auth_cfg = hub_state.get("auth", {"username": "admin", "password": "admin123"})
+    if username == auth_cfg.get("username", "admin") and password == auth_cfg.get("password", "admin123"):
+        session["user"] = username
+        logger.info(f"User '{username}' logged in successfully.")
+        return jsonify({"success": True, "message": "Login successful", "user": username})
+
+    logger.warning(f"Failed login attempt for username: '{username}'")
+    return jsonify({"success": False, "error": "Invalid username or password"}), 401
+
+@app.route("/api/logout", methods=["POST"])
+def logout_route():
+    user = session.pop("user", None)
+    logger.info(f"User '{user}' logged out.")
+    return jsonify({"success": True, "message": "Logged out successfully"})
+
+@app.route("/api/change-password", methods=["POST"])
+def change_password_route():
+    data = request.json or {}
+    old_pw = data.get("old_password", "").strip()
+    new_pw = data.get("new_password", "").strip()
+
+    auth_cfg = hub_state.setdefault("auth", {"username": "admin", "password": "admin123"})
+    if old_pw != auth_cfg.get("password", "admin123"):
+        return jsonify({"success": False, "error": "Current password is incorrect"}), 400
+
+    if not new_pw or len(new_pw) < 3:
+        return jsonify({"success": False, "error": "New password must be at least 3 characters long"}), 400
+
+    auth_cfg["password"] = new_pw
+    save_settings()
+    logger.info("Admin password changed successfully.")
+    return jsonify({"success": True, "message": "Password changed successfully"})
 
 # ==============================================================================
 def get_device_model_info():
